@@ -18,7 +18,7 @@
             {% if facet_intro %}
             <p class="mt-2 text-sm text-gray-600">{{ facet_intro }}</p>
             {% endif %}
-            <p class="mt-2 text-sm text-gray-500">
+            <p class="mt-2 text-sm text-gray-500" id="results-count">
                 {% if found > 0 %}
                     {{ found }} result{{ 's' if found != 1 else '' }} found
                     {% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
@@ -32,7 +32,16 @@
     {# ── Search bar ── #}
     <div class="bg-white border-b border-gray-100">
         <div class="mx-auto max-w-7xl px-6 py-4">
-            <form method="get" action="{{ canonical_path }}" class="flex w-full max-w-xl gap-2">
+            <form
+                method="get"
+                action="{{ canonical_path }}"
+                class="flex w-full max-w-xl gap-2"
+                hx-get="{{ canonical_path }}"
+                hx-target="#results"
+                hx-swap="outerHTML"
+                hx-push-url="true"
+                hx-indicator="#search-indicator"
+            >
                 <input
                     type="search"
                     name="q"
@@ -45,6 +54,12 @@
                     type="submit"
                     class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
                 >
+                    <span id="search-indicator" class="htmx-indicator">
+                        <svg class="inline size-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                        </svg>
+                    </span>
                     Search
                 </button>
                 {% if query %}
@@ -59,97 +74,9 @@
         </div>
     </div>
 
-    {# ── Results grid ── #}
+    {# ── Results grid (htmx target) ── #}
     <main class="mx-auto max-w-7xl px-6 py-8">
-        {% if entities %}
-        <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {% for entity in entities %}
-                {% if entity_type == 'person' %}
-                    {% include "partials/_person_card.html" %}
-                {% else %}
-                    {% include "partials/_org_card.html" %}
-                {% endif %}
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="flex flex-col items-center justify-center py-24 text-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-4 size-12 text-gray-300" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-            </svg>
-            <p class="text-lg font-medium text-gray-700">No {{ heading | lower }} found</p>
-            <p class="mt-1 text-sm text-gray-500">
-                {% if query %}
-                    Try a different search term or <a href="{{ canonical_path }}" class="text-sky-500 underline">clear the search</a>.
-                {% else %}
-                    Check back soon — we're always adding new profiles.
-                {% endif %}
-            </p>
-        </div>
-        {% endif %}
-
-        {# ── Pagination ── #}
-        {% if pagination and pagination.has_other_pages %}
-        <nav class="mt-12 flex items-center justify-center gap-1" aria-label="Pagination">
-            {% if pagination.has_prev %}
-            <a
-                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page=1"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                aria-label="First page"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
-                </svg>
-            </a>
-            <a
-                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.prev }}"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                aria-label="Previous page"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                </svg>
-            </a>
-            {% endif %}
-
-            {% for p in pagination.pages %}
-                {% if p == 0 %}
-                <span class="inline-flex size-10 items-center justify-center text-gray-400">&hellip;</span>
-                {% elif p == pagination.current_page %}
-                <a
-                    href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
-                    class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500"
-                    aria-current="page"
-                >{{ p }}</a>
-                {% else %}
-                <a
-                    href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
-                    class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                >{{ p }}</a>
-                {% endif %}
-            {% endfor %}
-
-            {% if pagination.has_next %}
-            <a
-                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.next }}"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                aria-label="Next page"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                </svg>
-            </a>
-            <a
-                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.last_page }}"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-                aria-label="Last page"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
-                </svg>
-            </a>
-            {% endif %}
-        </nav>
-        {% endif %}
+        {% include "browse/_results.html" %}
     </main>
 </div>
 {% endblock %}
@@ -174,4 +101,8 @@
 ] %}
 {%- endif %}
 {% include "partials/_jsonld_breadcrumb.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/vendor/htmx.min.js" defer></script>
 {% endblock %}

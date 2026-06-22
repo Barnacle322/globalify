@@ -6,13 +6,9 @@ from flask import (
     request,
 )
 from flask_login import current_user, login_required
-from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import (
-    Geography,
-    Industry,
-    Round,
     SearchHistory,
     entity_search,
 )
@@ -22,8 +18,6 @@ from ..utils.decorators import (
     check_verification,
 )
 from ..utils.enums import SearchHistoryType
-from ..utils.funcs import generate_pagination
-from ..utils.posthog import capture_event, capture_page_visit
 
 search = Blueprint("search", __name__)
 
@@ -99,231 +93,22 @@ def search_entities(search_input):
 
 @search.route("/search", methods=["GET", "POST"])
 def investor_search():
-    capture_page_visit("investor_search")
-
-    if next_url := request.args.get("next"):
-        return redirect(next_url)
-
-    search_string = request.args.get("search", "").strip()
-    page = request.args.get("page", 1, type=int)
-
-    stages = []
-    for round_name in request.args.getlist("round"):
-        if Round.get_by_name(round_name):
-            stages.append(round_name)
-
-    industries = []
-    for industry_name in request.args.getlist("industry"):
-        if Industry.get_by_name(industry_name):
-            industries.append(industry_name)
-
-    geo_slugs = []
-    for geo_slug in request.args.getlist("country"):
-        geo_slugs.append(geo_slug)
-
-    try:
-        result = entity_search.get_search(
-            query=search_string or "*",
-            entity_type="person",
-            industries=industries or None,
-            stages=stages or None,
-            geographies=geo_slugs or None,
-            check_size_min=request.args.get("min_investment", type=int),
-            check_size_max=request.args.get("max_investment", type=int),
-            sort_by=request.args.get("sort_field"),
-            sort_desc=request.args.get("descending", False, type=bool),
-            page=page,
-            per_page=18,
-        )
-    except Exception:
-        result = {"found": 0, "page": page, "hits": [], "pages": 1}
-
-    found = result.get("found", 0)
-    result_page = int(result.get("page", page))
-    per_page = 18
-    pages = found // per_page + (1 if found % per_page else 0)
-    pagination = generate_pagination(result_page, max(pages, 1))
-
-    investors = [
-        {
-            "id": hit.get("document", {}).get("db_id"),
-            "name": hit.get("document", {}).get("name"),
-            "slug": hit.get("document", {}).get("slug"),
-            "about": hit.get("document", {}).get("about"),
-            "headline": hit.get("document", {}).get("headline"),
-            "org_name": hit.get("document", {}).get("org_name"),
-            "industries": hit.get("document", {}).get("industries", []),
-            "stages": hit.get("document", {}).get("stages", []),
-            "geographies": hit.get("document", {}).get("geographies", []),
-            "check_size_min": hit.get("document", {}).get("check_size_min"),
-            "check_size_max": hit.get("document", {}).get("check_size_max"),
-            "n_investments": hit.get("document", {}).get("n_investments"),
-            "n_exits": hit.get("document", {}).get("n_exits"),
-        }
-        for hit in result.get("hits", [])
-    ]
-
-    if search_string and current_user.is_authenticated:
-        try:
-            new_search_history = SearchHistory(
-                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
-            )
-            db.session.add(new_search_history)
-            db.session.commit()
-
-            capture_event(
-                event="search_investor_performed",
-                properties={
-                    "search_query": search_string,
-                    "user_id": current_user.id,
-                    "page": page,
-                    "filters": {
-                        "stages": stages,
-                        "industries": industries,
-                        "geographies": geo_slugs,
-                    },
-                    "sort_field": request.args.get("sort_field"),
-                    "descending": request.args.get("descending", False, type=bool),
-                },
-                distinct_id=current_user.id,
-            )
-
-        except IntegrityError:
-            db.session.rollback()
-
-    geographies = db.session.scalars(db.select(Geography)).all()
-
-    return render_template(
-        "search.html",
-        investors=investors,
-        query=search_string,
-        fields={
-            "n_investments": "Number of Investments",
-            "n_exits": "Number of Exits",
-            "check_size_min": "Minimum Investment",
-            "check_size_max": "Maximum Investment",
-        },
-        pagination=pagination,
-        total_pages=len(pagination.get("pages", [])),
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-        geographies=geographies,
-        user=current_user if current_user.is_authenticated else None,
-        type=SearchHistoryType.INVESTOR.value.lower(),
-    )
+    """Legacy route — 301 redirect to /investors, preserving query string."""
+    qs = request.query_string.decode()
+    target = "/investors"
+    if qs:
+        target = f"{target}?{qs}"
+    return redirect(target, 301)
 
 
 @search.route("/search/investment-firms", methods=["GET", "POST"])
 def search_investment_firms():
-    capture_page_visit("investment_firm_search")
-
-    search_string = request.args.get("search", "").strip()
-    page = request.args.get("page", 1, type=int)
-
-    stages = []
-    for round_name in request.args.getlist("round"):
-        if Round.get_by_name(round_name):
-            stages.append(round_name)
-
-    industries = []
-    for industry_name in request.args.getlist("industry"):
-        if Industry.get_by_name(industry_name):
-            industries.append(industry_name)
-
-    geo_slugs = []
-    for geo_slug in request.args.getlist("country"):
-        geo_slugs.append(geo_slug)
-
-    try:
-        result = entity_search.get_search(
-            query=search_string or "*",
-            entity_type="org",
-            industries=industries or None,
-            stages=stages or None,
-            geographies=geo_slugs or None,
-            check_size_min=request.args.get("min_investment", type=int),
-            check_size_max=request.args.get("max_investment", type=int),
-            sort_by=request.args.get("sort_field"),
-            sort_desc=request.args.get("descending", False, type=bool),
-            page=page,
-            per_page=18,
-        )
-    except Exception:
-        result = {"found": 0, "page": page, "hits": [], "pages": 1}
-
-    found = result.get("found", 0)
-    result_page = int(result.get("page", page))
-    per_page = 18
-    pages = found // per_page + (1 if found % per_page else 0)
-    pagination = generate_pagination(result_page, max(pages, 1))
-
-    investment_firms = [
-        {
-            "id": hit.get("document", {}).get("db_id"),
-            "name": hit.get("document", {}).get("name"),
-            "slug": hit.get("document", {}).get("slug"),
-            "about": hit.get("document", {}).get("about"),
-            "industries": hit.get("document", {}).get("industries", []),
-            "stages": hit.get("document", {}).get("stages", []),
-            "geographies": hit.get("document", {}).get("geographies", []),
-            "check_size_min": hit.get("document", {}).get("check_size_min"),
-            "check_size_max": hit.get("document", {}).get("check_size_max"),
-            "n_investments": hit.get("document", {}).get("n_investments"),
-            "n_exits": hit.get("document", {}).get("n_exits"),
-            "person_names": hit.get("document", {}).get("person_names", []),
-        }
-        for hit in result.get("hits", [])
-    ]
-
-    if search_string and current_user.is_authenticated:
-        try:
-            new_search_history = SearchHistory(
-                user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
-            )
-            db.session.add(new_search_history)
-            db.session.commit()
-
-            capture_event(
-                event="search_investment_firm_performed",
-                properties={
-                    "search_query": search_string,
-                    "user_id": current_user.id,
-                    "page": page,
-                    "filters": {
-                        "stages": stages,
-                        "industries": industries,
-                        "geographies": geo_slugs,
-                    },
-                    "sort_field": request.args.get("sort_field"),
-                    "descending": request.args.get("descending", False, type=bool),
-                },
-                distinct_id=current_user.id,
-            )
-
-        except IntegrityError:
-            db.session.rollback()
-
-    geographies = db.session.scalars(db.select(Geography)).all()
-
-    return render_template(
-        "search_investment_firms.html",
-        investment_firms=investment_firms,
-        query=search_string,
-        fields={
-            "n_investments": "Number of Investments",
-            "n_exits": "Number of Exits",
-            "check_size_min": "Minimum Investment",
-            "check_size_max": "Maximum Investment",
-            "n_employees": "Number of Employees",
-        },
-        pagination=pagination,
-        total_pages=len(pagination.get("pages", [])),
-        industry_list=Industry.get_all(),
-        round_list=Round.get_all(),
-        geographies=geographies,
-        type=SearchHistoryType.INVESTMENT_FIRM.value.lower().replace("_", ""),
-        user=current_user if current_user.is_authenticated else None,
-    )
+    """Legacy route — 301 redirect to /firms, preserving query string."""
+    qs = request.query_string.decode()
+    target = "/firms"
+    if qs:
+        target = f"{target}?{qs}"
+    return redirect(target, 301)
 
 
 @search.get("/search-history")

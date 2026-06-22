@@ -339,10 +339,10 @@ def get_investment_firm_bookmark_ids():
 def update_notification(notification_id):
     notification = Notification.get_by_id(int(notification_id))
     if not notification:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     if notification.user_id != current_user.id:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     notification.is_read = True
     db.session.commit()

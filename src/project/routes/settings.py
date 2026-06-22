@@ -240,7 +240,7 @@ def get_rounds():
 @check_verification
 def investor_list_view():
     if not isinstance(current_user, User):
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     person_models = Person.get_all()
 
@@ -262,7 +262,7 @@ def investor_list_view():
 @check_verification
 def investment_firms_list_view():
     if not isinstance(current_user, User):
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     org_models = Organization.get_all()
 

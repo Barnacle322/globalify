@@ -44,7 +44,7 @@ claim = Blueprint("claim", __name__)
 def types_view(slug):
     person = Person.get_by_slug(slug)
     if not person:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     return render_template("claiming/index.html", investor=person)
 
@@ -59,7 +59,7 @@ def manual_view(slug):
 
     person = Person.get_by_slug(slug)
     if not person:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     return render_template(
         "claiming/manual.html",
@@ -118,7 +118,7 @@ def email_view(slug):
 
     person = Person.get_by_slug(slug)
     if not person:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     return render_template("claiming/email.html", investor=person, status_type=status_type, msg=msg)
 
@@ -128,7 +128,7 @@ def email_view(slug):
 def email(slug):
     person = Person.get_by_slug(slug)
     if not person or person.user_id:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     existing_claim = Person.get_by_user_id(current_user.id)
     if existing_claim:
@@ -163,7 +163,7 @@ def verification_view(slug):
 
     person = Person.get_by_slug(slug)
     if not person:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     return render_template(
         "claiming/email_verification.html",
@@ -186,7 +186,7 @@ def verification(slug):
 
     person = Person.get_by_slug(slug)
     if not person:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:

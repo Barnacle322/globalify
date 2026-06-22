@@ -9,9 +9,11 @@ from __future__ import annotations
 import logging
 
 from flask import Blueprint, abort, redirect, render_template, request
+from flask_login import current_user, login_required
 
+from ..extensions import db
 from ..models import entity_search
-from ..models.entity import Organization, Person, load_profile_bundle
+from ..models.entity import EntityBookmark, Organization, Person, load_profile_bundle
 from ..utils.enums import EntityType
 from ..utils.funcs import generate_pagination
 from ..utils.seo.slugs import build_facet_canonical, classify_segment, order_segments
@@ -102,8 +104,9 @@ def investors():
     pagination = generate_pagination(result_page, total_pages)
     entities = _hits_to_entities(result.get("hits", []))
 
+    template = "browse/_results.html" if request.headers.get("HX-Request") else "browse/list.html"
     return render_template(
-        "browse/list.html",
+        template,
         entities=entities,
         entity_type=EntityType.PERSON,
         heading="Investors",
@@ -152,8 +155,9 @@ def firms():
     pagination = generate_pagination(result_page, total_pages)
     entities = _hits_to_entities(result.get("hits", []))
 
+    template = "browse/_results.html" if request.headers.get("HX-Request") else "browse/list.html"
     return render_template(
-        "browse/list.html",
+        template,
         entities=entities,
         entity_type=EntityType.ORG,
         heading="Investment Firms",
@@ -354,8 +358,9 @@ def _render_facet_page(
     page_title = heading
     meta_description = intro
 
+    template = "browse/_results.html" if request.headers.get("HX-Request") else "browse/list.html"
     return render_template(
-        "browse/list.html",
+        template,
         entities=entities,
         entity_type=entity_kind,
         heading=heading,
@@ -502,6 +507,10 @@ def _render_person_profile(person: Person):
 
     viewer_is_pro = False
 
+    is_bookmarked = False
+    if current_user.is_authenticated:
+        is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.PERSON, person.id)
+
     return render_template(
         "profiles/person.html",
         person=person,
@@ -512,6 +521,7 @@ def _render_person_profile(person: Person):
         affiliations=affiliations,
         primary_aff=primary_aff,
         viewer_is_pro=viewer_is_pro,
+        is_bookmarked=is_bookmarked,
         page_title=full_name,
         meta_description=meta_desc,
         canonical=f"https://globalify.xyz/investors/{person.slug}",
@@ -558,6 +568,10 @@ def _render_org_profile(org: Organization):
 
     viewer_is_pro = False
 
+    is_bookmarked = False
+    if current_user.is_authenticated:
+        is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.ORG, org.id)
+
     return render_template(
         "profiles/organization.html",
         org=org,
@@ -567,6 +581,7 @@ def _render_org_profile(org: Organization):
         affiliations=affiliations,
         aff_proxies=aff_proxies,
         viewer_is_pro=viewer_is_pro,
+        is_bookmarked=is_bookmarked,
         page_title=org.name,
         meta_description=meta_desc,
         canonical=f"https://globalify.xyz/firms/{org.slug}",
@@ -592,3 +607,64 @@ def _render_org_profile(org: Organization):
 # the search blueprint (search.investor_search and search.search_investment_firms)
 # which remain the canonical handlers for those paths; adding duplicate rules here
 # would cause a Flask AssertionError at startup.
+
+
+# ---------------------------------------------------------------------------
+# Bookmark toggle
+# ---------------------------------------------------------------------------
+
+
+@public.post("/bookmarks/<entity_type_str>/<int:entity_id>")
+@login_required
+def toggle_bookmark(entity_type_str: str, entity_id: int):
+    """Toggle EntityBookmark for the current user.
+
+    URL param entity_type_str must be "person" or "org".
+    If HX-Request: returns rendered _bookmark_button.html partial.
+    Otherwise: redirects back to referrer.
+    """
+    if entity_type_str not in ("person", "org"):
+        abort(404)
+
+    entity_type = EntityType.PERSON if entity_type_str == "person" else EntityType.ORG
+
+    # Verify entity exists
+    if entity_type == EntityType.PERSON:
+        entity = Person.get_by_id(entity_id)
+    else:
+        entity = Organization.get_by_id(entity_id)
+
+    if not entity:
+        abort(404)
+
+    bookmarked: bool
+    if EntityBookmark.exists(current_user.id, entity_type, entity_id):
+        existing = db.session.scalar(
+            db.select(EntityBookmark).where(
+                EntityBookmark.user_id == current_user.id,
+                EntityBookmark.entity_type == entity_type,
+                EntityBookmark.entity_id == entity_id,
+            )
+        )
+        db.session.delete(existing)
+        db.session.commit()
+        bookmarked = False
+    else:
+        new_bookmark = EntityBookmark(
+            user_id=current_user.id,
+            entity_type=entity_type,
+            entity_id=entity_id,
+        )
+        db.session.add(new_bookmark)
+        db.session.commit()
+        bookmarked = True
+
+    if request.headers.get("HX-Request"):
+        return render_template(
+            "partials/_bookmark_button.html",
+            entity_type_str=entity_type_str,
+            entity_id=entity_id,
+            bookmarked=bookmarked,
+        )
+
+    return redirect(request.referrer or "/")

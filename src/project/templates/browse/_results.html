@@ -1,0 +1,96 @@
+{#
+  browse/_results.html — htmx fragment: results grid + pagination only.
+  Included by browse/list.html and returned directly on HX-Request.
+  Context variables match browse/list.html.
+#}
+<div id="results">
+    {% if entities %}
+    <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {% for entity in entities %}
+            {% if entity_type == 'person' %}
+                {% include "partials/_person_card.html" %}
+            {% else %}
+                {% include "partials/_org_card.html" %}
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-4 size-12 text-gray-300" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <p class="text-lg font-medium text-gray-700">No {{ heading | lower }} found</p>
+        <p class="mt-1 text-sm text-gray-500">
+            {% if query %}
+                Try a different search term or <a href="{{ canonical_path }}" class="text-sky-500 underline">clear the search</a>.
+            {% else %}
+                Check back soon — we're always adding new profiles.
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+
+    {# ── Pagination ── #}
+    {% if pagination and pagination.has_other_pages %}
+    <nav class="mt-12 flex items-center justify-center gap-1" aria-label="Pagination">
+        {% if pagination.has_prev %}
+        <a
+            href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page=1"
+            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            aria-label="First page"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
+            </svg>
+        </a>
+        <a
+            href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.prev }}"
+            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            aria-label="Previous page"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        </a>
+        {% endif %}
+
+        {% for p in pagination.pages %}
+            {% if p == 0 %}
+            <span class="inline-flex size-10 items-center justify-center text-gray-400">&hellip;</span>
+            {% elif p == pagination.current_page %}
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500"
+                aria-current="page"
+            >{{ p }}</a>
+            {% else %}
+            <a
+                href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
+                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+        <a
+            href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.next }}"
+            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            aria-label="Next page"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </a>
+        <a
+            href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.last_page }}"
+            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            aria-label="Last page"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
+            </svg>
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>

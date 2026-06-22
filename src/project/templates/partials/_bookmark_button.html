@@ -1,0 +1,36 @@
+{#
+  _bookmark_button.html — htmx-driven bookmark toggle button.
+
+  Expected context variables:
+    entity_type_str  (str)   "person" or "org"
+    entity_id        (int)   The entity's DB id
+    bookmarked       (bool)  Current bookmark state
+#}
+<form
+    method="post"
+    action="/bookmarks/{{ entity_type_str }}/{{ entity_id }}"
+    hx-post="/bookmarks/{{ entity_type_str }}/{{ entity_id }}"
+    hx-swap="outerHTML"
+    class="inline"
+>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button
+        type="submit"
+        class="inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs transition-colors
+               {% if bookmarked %}border-sky-300 bg-sky-50 text-sky-600 hover:bg-sky-100{% else %}border-gray-200 bg-white text-gray-500 hover:bg-gray-50{% endif %}"
+        aria-label="{{ 'Remove bookmark' if bookmarked else 'Bookmark' }}"
+        title="{{ 'Remove bookmark' if bookmarked else 'Save to bookmarks' }}"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg"
+             viewBox="0 0 24 24"
+             stroke-width="1.5"
+             stroke="currentColor"
+             class="size-3.5"
+             fill="{{ 'currentColor' if bookmarked else 'none' }}"
+             aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" />
+        </svg>
+        {{ 'Saved' if bookmarked else 'Save' }}
+    </button>
+</form>

@@ -1586,6 +1586,9 @@ select {
 .inline-block {
   display: inline-block;
 }
+.inline {
+  display: inline;
+}
 .flex {
   display: flex;
 }
@@ -2474,6 +2477,10 @@ select {
 .border-gray-900\/10 {
   border-color: rgb(17 24 39 / 0.1);
 }
+.border-sky-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(125 211 252 / var(--tw-border-opacity));
+}
 .border-sky-500 {
   --tw-border-opacity: 1;
   border-color: rgb(14 165 233 / var(--tw-border-opacity));
@@ -3289,6 +3296,9 @@ select {
 }
 .\@container {
   container-type: inline-size;
+}
+.\[a-zA-Z\:\\-\\\.\] {
+  a-z-a--z: \-\.;
 }
 
 @font-face {
@@ -4197,6 +4207,10 @@ textarea {
 .hover\:bg-red-600:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(220 38 38 / var(--tw-bg-opacity));
+}
+.hover\:bg-sky-100:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(224 242 254 / var(--tw-bg-opacity));
 }
 .hover\:bg-sky-400:hover {
   --tw-bg-opacity: 1;

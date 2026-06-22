@@ -40,6 +40,12 @@
                             </span>
                             {% endif %}
                         </div>
+                        {% if current_user and current_user.is_authenticated %}
+                        {%- set entity_type_str = "org" -%}
+                        {%- set entity_id = org.id -%}
+                        {%- set bookmarked = is_bookmarked | default(false) -%}
+                        {% include "partials/_bookmark_button.html" %}
+                        {% endif %}
                     </div>
 
                     {# Location ── #}

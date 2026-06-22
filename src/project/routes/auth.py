@@ -71,7 +71,7 @@ def verify_email():
     email_verification.is_used = True
     db.session.commit()
 
-    return redirect(url_for("search.investor_search", next=next_url))
+    return redirect(url_for("public.investors", next=next_url))
 
 
 @auth.route("/resend-verification/<int:user_id>")
@@ -88,7 +88,7 @@ def resend_verification_email(user_id):
         return redirect(url_for("auth.login", _external=False, **status))
 
     if user.is_verified:
-        return redirect(url_for("search.investor_search", _external=False))
+        return redirect(url_for("public.investors", _external=False))
 
     last_verification = EmailVerification.get_last_unused_by_user_id(user_id)
 
@@ -127,7 +127,7 @@ def email_verification_required():
     next_url = request.args.get("next")
 
     if current_user.is_verified:
-        return redirect(url_for("search.investor_search", next=next_url))
+        return redirect(url_for("public.investors", next=next_url))
 
     return render_template("verify_email.html", user_id=current_user.id, status_type=status_type, msg=msg)
 
@@ -135,7 +135,7 @@ def email_verification_required():
 @auth.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("search.investor_search"))
+        return redirect(url_for("public.investors"))
 
     status_type, msg = None, None
     if query := request.args:

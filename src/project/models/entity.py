@@ -49,6 +49,8 @@ from ..utils.enums import (
 )
 
 if TYPE_CHECKING:
+    from .helpers import Industry
+    from .investor import NotableInvestment
     from .user import User
 
 
@@ -83,6 +85,11 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
     def __repr__(self) -> str:
         return f"<Person {self.first_name} {self.last_name or ''}>"
 
+    @staticmethod
+    def get_by_slug(slug: str) -> Person | None:
+        """Return the public Person with the given slug, or None."""
+        return db.session.scalar(db.select(Person).where(Person.slug == slug, Person.is_public.is_(True)))
+
 
 class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     """An investment firm, accelerator, or other investing organization."""
@@ -110,6 +117,13 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
 
     def __repr__(self) -> str:
         return f"<Organization {self.name}>"
+
+    @staticmethod
+    def get_by_slug(slug: str) -> Organization | None:
+        """Return the public Organization with the given slug, or None."""
+        return db.session.scalar(
+            db.select(Organization).where(Organization.slug == slug, Organization.is_public.is_(True))
+        )
 
 
 class Affiliation(MappedAsDataclass, db.Model, unsafe_hash=True):
@@ -290,3 +304,101 @@ class EntityBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
                 )
             )
         )
+
+
+# ---------------------------------------------------------------------------
+# Module-level query helpers
+# ---------------------------------------------------------------------------
+
+
+def load_profile_bundle(entity_type: EntityType, entity_id: int) -> dict:
+    """Load all profile facets for a Person or Organization in grouped queries.
+
+    Returns a dict with keys:
+        profile     – InvestorProfile row or None
+        industries  – list[Industry]
+        stages      – list[InvestmentStage]  (enum values from EntityStage rows)
+        geographies – list[Geography]
+        notables    – list[NotableInvestment]
+        affiliations – list[Affiliation]
+            For PERSON: rows where person_id == entity_id
+            For ORG:    rows where organization_id == entity_id
+
+    Uses one db.select per facet kind (no per-row loops).
+    """
+    # Deferred imports to avoid circular imports at module load time
+    from .helpers import Industry
+    from .investor import NotableInvestment
+
+    # --- InvestorProfile -------------------------------------------------------
+    profile: InvestorProfile | None = db.session.scalar(
+        db.select(InvestorProfile).where(
+            InvestorProfile.entity_type == entity_type,
+            InvestorProfile.entity_id == entity_id,
+        )
+    )
+
+    # --- Industries ------------------------------------------------------------
+    industries: list[Industry] = list(
+        db.session.scalars(
+            db.select(Industry)
+            .join(EntityIndustry, EntityIndustry.industry_id == Industry.id)
+            .where(
+                EntityIndustry.entity_type == entity_type,
+                EntityIndustry.entity_id == entity_id,
+            )
+        ).all()
+    )
+
+    # --- Stages (return the InvestmentStage enum values) ----------------------
+    stages: list[InvestmentStage] = list(
+        db.session.scalars(
+            db.select(EntityStage.stage).where(
+                EntityStage.entity_type == entity_type,
+                EntityStage.entity_id == entity_id,
+            )
+        ).all()
+    )
+
+    # --- Geographies -----------------------------------------------------------
+    geographies: list[Geography] = list(
+        db.session.scalars(
+            db.select(Geography)
+            .join(EntityGeography, EntityGeography.geography_id == Geography.id)
+            .where(
+                EntityGeography.entity_type == entity_type,
+                EntityGeography.entity_id == entity_id,
+            )
+        ).all()
+    )
+
+    # --- Notable investments ---------------------------------------------------
+    notables: list[NotableInvestment] = list(
+        db.session.scalars(
+            db.select(NotableInvestment)
+            .join(EntityNotable, EntityNotable.notable_investment_id == NotableInvestment.id)
+            .where(
+                EntityNotable.entity_type == entity_type,
+                EntityNotable.entity_id == entity_id,
+            )
+        ).all()
+    )
+
+    # --- Affiliations ----------------------------------------------------------
+    if entity_type == EntityType.PERSON:
+        affiliations: list[Affiliation] = list(
+            db.session.scalars(db.select(Affiliation).where(Affiliation.person_id == entity_id)).all()
+        )
+    else:
+        affiliations = list(
+            db.session.scalars(db.select(Affiliation).where(Affiliation.organization_id == entity_id)).all()
+        )
+
+    return {
+        "profile": profile,
+        "industries": industries,
+        "stages": stages,
+        "geographies": geographies,
+        "notables": notables,
+        "affiliations": affiliations,
+    }

@@ -101,6 +101,19 @@ def create_app():
             "paddle_environment": cfg.paddle_environment,
         }
 
+    @app.context_processor
+    def inject_ads_config():
+        try:
+            viewer_is_pro = current_user.is_authenticated and current_user.is_pro
+        except AttributeError:
+            # current_user may be None outside a real request context (e.g. render_template
+            # called from email utilities in tests).  Treat as anonymous — but ads are off
+            # anyway when ads_enabled is False, so this is purely defensive.
+            viewer_is_pro = False
+        return {
+            "show_ads": cfg.ads_enabled and not viewer_is_pro,
+        }
+
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
     app.register_error_handler(403, forbidden)

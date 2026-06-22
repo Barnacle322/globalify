@@ -1753,6 +1753,9 @@ select {
 .min-h-\[60vh\] {
   min-height: 60vh;
 }
+.min-h-\[80px\] {
+  min-height: 80px;
+}
 .min-h-screen {
   min-height: 100vh;
 }
@@ -3087,6 +3090,9 @@ select {
 .tracking-wide {
   letter-spacing: 0.025em;
 }
+.tracking-widest {
+  letter-spacing: 0.1em;
+}
 .text-\[\#26a3f1\] {
   --tw-text-opacity: 1;
   color: rgb(38 163 241 / var(--tw-text-opacity));
@@ -4313,6 +4319,9 @@ textarea {
 .hover\:text-white:hover {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
+}
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 .hover\:opacity-90:hover {
   opacity: 0.9;

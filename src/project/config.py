@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     cap_site_key: str | None = Field(default=None, alias="_CAP_SITE_KEY")
     cap_secret: str | None = Field(default=None, alias="_CAP_SECRET")
 
+    # Ads (config-gated — gates ad slots for non-Pro viewers)
+    ads_enabled: bool = Field(default=False, alias="_ADS_ENABLED")
+
     # Paddle billing (all optional — gates payment UI vs "coming soon")
     paddle_client_token: str | None = Field(default=None, alias="_PADDLE_CLIENT_TOKEN")
     paddle_price_id_monthly: str | None = Field(default=None, alias="_PADDLE_PRICE_ID_MONTHLY")

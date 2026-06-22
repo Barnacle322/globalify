@@ -1,0 +1,20 @@
+{#
+  partials/_ad_slot.html — house/sponsor ad block.
+  Rendered only when `show_ads` is True (injected by context processor).
+  Accepts an optional `slot` variable for placement labels (e.g. "browse-top", "profile-sidebar").
+
+  Future: wrap the real provider script in {% if ads_provider %} here.
+  TODO: integrate AdSense/Ezoic — add ads_provider + slot_id to config when ready.
+#}
+{% if show_ads %}
+<aside
+    class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center"
+    aria-label="Sponsored content"
+    data-ad-slot="{{ slot | default('default') }}"
+>
+    <p class="mb-2 text-xs font-medium uppercase tracking-widest text-gray-400">Sponsored</p>
+    <div class="flex min-h-[80px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 py-6">
+        <p class="text-sm text-gray-400">Your ad could be here — <a href="/contact" class="text-sky-500 hover:underline">get in touch</a>.</p>
+    </div>
+</aside>
+{% endif %}

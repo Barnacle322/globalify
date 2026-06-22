@@ -12,6 +12,10 @@
             No results found{% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
         {% endif %}
     </p>
+    {# ── Ad slot (non-Pro viewers only, config-gated) ── #}
+    {% set slot = "browse-top" %}
+    {% include "partials/_ad_slot.html" %}
+
     {% if entities %}
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {% for entity in entities %}

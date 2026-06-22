@@ -178,10 +178,14 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     n_employees: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=text("true"))
     is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True, default=None)
     search_index: Mapped[str | None] = mapped_column(String, nullable=True, default=None, init=False)
     created_at: Mapped[datetime.datetime | None] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=True, init=False
     )
+
+    # Relationships (init=False — not set via constructor)
+    user: Mapped[User | None] = relationship("User", foreign_keys=[user_id], uselist=False, init=False)
 
     def __repr__(self) -> str:
         return f"<Organization {self.name}>"
@@ -204,6 +208,10 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     @staticmethod
     def get_by_email(email: str) -> Organization | None:
         return db.session.scalar(db.select(Organization).where(Organization.email == email))
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Organization | None:
+        return db.session.scalar(db.select(Organization).where(Organization.user_id == user_id))
 
     def set_slug(self) -> None:
         import uuid as _uuid

@@ -47,14 +47,9 @@ def db_session(app):
 @pytest.fixture()
 def seeded(db_session):  # noqa: C901  (acceptable complexity for a fixture)
     """Seed a minimal fixture and return a namespace with all seeded objects."""
+    from project.models.backfill import InvestmentFirm, InvestmentFirmBookmark, Investor, InvestorBookmark
     from project.models.entity import NotableInvestment
     from project.models.helpers import Industry, Round
-    from project.models.investor import (
-        InvestmentFirm,
-        InvestmentFirmBookmark,
-        Investor,
-        InvestorBookmark,
-    )
     from project.models.user import User
 
     db = db_session
@@ -421,10 +416,9 @@ def test_backfill_investor_profile_fields(seeded):
 
 def test_backfill_series_b_plus_expansion(db_session):
     """Round name 'Series B+' must produce BOTH SERIES_B and SERIES_C EntityStage rows."""
-    from project.models.backfill import backfill_entities
+    from project.models.backfill import Investor, backfill_entities
     from project.models.entity import EntityStage, Person
     from project.models.helpers import Round
-    from project.models.investor import Investor
     from project.utils.enums import InvestmentStage
 
     db = db_session
@@ -460,9 +454,8 @@ def test_backfill_series_b_plus_expansion(db_session):
 
 def test_backfill_fuzzy_match_near_name(db_session):
     """A firm_name that fuzzy-scores >= 90 against an existing firm must link to that org."""
-    from project.models.backfill import backfill_entities
+    from project.models.backfill import InvestmentFirm, Investor, backfill_entities
     from project.models.entity import Affiliation, Organization, Person
-    from project.models.investor import InvestmentFirm, Investor
 
     db = db_session
 
@@ -509,9 +502,8 @@ def test_backfill_fuzzy_match_near_name(db_session):
 
 def test_backfill_duplicate_firm_name_shares_stub(db_session):
     """Two investors with the SAME unmatched firm_name share exactly ONE stub Organization."""
-    from project.models.backfill import backfill_entities
+    from project.models.backfill import Investor, backfill_entities
     from project.models.entity import Affiliation, Organization, Person
-    from project.models.investor import Investor
 
     db = db_session
 

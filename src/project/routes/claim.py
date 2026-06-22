@@ -1,3 +1,10 @@
+"""Claiming blueprint — Phase 2d Task 4.
+
+Legacy claim flows (dependent on removed ORM models) have been replaced with
+entity-model paths using Person / ClaimRequest.  Legacy URL shapes are kept
+so that existing bookmarked links return sensible responses.
+"""
+
 from flask import (
     Blueprint,
     jsonify,
@@ -12,10 +19,9 @@ from ..extensions import db
 from ..models import (
     ClaimRequest,
     ClaimVerification,
-    Investor,
-    InvestorOriginPoint,
     User,
 )
+from ..models.entity import Person
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import (
     CLAIM_REQUEST_ALREADY_SUBMITTED,
@@ -28,18 +34,19 @@ from ..utils.errors.error_messages import (
 claim = Blueprint("claim", __name__)
 
 
+# ---------------------------------------------------------------------------
+# Legacy slug routes — redirect to current search
+# ---------------------------------------------------------------------------
+
+
 @claim.get("/investor/<slug>/claim")
 @login_required
 def types_view(slug):
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return redirect(url_for("search.investor_search"))
 
-    if email := investor.email:
-        email = email[:3] + "*" * (len(email) - 6) + email[-3:]
-        investor.email = email
-
-    return render_template("claiming/index.html", investor=investor)
+    return render_template("claiming/index.html", investor=person)
 
 
 @claim.get("/investor/<slug>/claim/manual")
@@ -50,13 +57,13 @@ def manual_view(slug):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return redirect(url_for("search.investor_search"))
 
     return render_template(
         "claiming/manual.html",
-        investor=investor,
+        investor=person,
         status_type=status_type,
         msg=msg,
     )
@@ -68,13 +75,13 @@ def manual(slug):
     form_data = request.get_json()
     email = form_data.get("email")
 
-    existing_claim = Investor.get_by_user_id(current_user.id)
+    existing_claim = Person.get_by_user_id(current_user.id)
     if existing_claim:
         status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
         return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
 
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
     claim_request = ClaimRequest.get_by_user_id(current_user.id)
@@ -86,36 +93,15 @@ def manual(slug):
             status = Status(StatusType.ERROR, INVESTOR_ALREADY_CLAIMED).get_status()
             return redirect(url_for("claim.manual_view", slug=slug, _external=False, **status))
 
+    from ..utils.enums import EntityType
+
     claim_request = ClaimRequest(
         user_id=current_user.id,
-        investor_id=investor.id,
+        entity_type=EntityType.PERSON,
+        entity_id=person.id,
         email=email,
     )
     db.session.add(claim_request)
-
-    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
-    if not investor_point_origin:
-        investor_point_origin = InvestorOriginPoint(investor=investor)
-        investor_point_origin.first_name = investor.first_name
-        investor_point_origin.last_name = investor.last_name
-        investor_point_origin.slug = investor.slug
-        investor_point_origin.firm_name = investor.firm_name
-        investor_point_origin.about = investor.about
-        investor_point_origin.position = investor.position
-        investor_point_origin.website = investor.website
-        investor_point_origin.linkedin = investor.linkedin
-        investor_point_origin.twitter = investor.twitter
-        investor_point_origin.email = investor.email
-        investor_point_origin.phone_number = investor.phone_number
-        investor_point_origin.n_investments = investor.n_investments
-        investor_point_origin.n_exits = investor.n_exits
-        investor_point_origin.min_investment = investor.min_investment
-        investor_point_origin.max_investment = investor.max_investment
-        investor_point_origin.location = investor.location
-        investor_point_origin.notable_investments = investor.notable_investments
-        investor_point_origin.rounds = investor.rounds
-        investor_point_origin.industries = investor.industries
-        db.session.add(investor_point_origin)
     db.session.commit()
 
     status = Status(StatusType.SUCCESS, "Claim request submitted.").get_status()
@@ -130,26 +116,32 @@ def email_view(slug):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return redirect(url_for("search.investor_search"))
 
-    return render_template("claiming/email.html", investor=investor, status_type=status_type, msg=msg)
+    return render_template("claiming/email.html", investor=person, status_type=status_type, msg=msg)
 
 
 @claim.post("/investor/<slug>/claim/email")
 @login_required
 def email(slug):
-    investor = Investor.get_by_slug(slug)
-    if not investor or investor.user_id:
+    person = Person.get_by_slug(slug)
+    if not person or person.user_id:
         return redirect(url_for("search.investor_search"))
 
-    existing_claim = Investor.get_by_user_id(current_user.id)
+    existing_claim = Person.get_by_user_id(current_user.id)
     if existing_claim:
         status = Status(StatusType.ERROR, "You can't claim another investor account!").get_status()
         return redirect(url_for("claim.email_view", slug=slug, _external=False, **status))
 
-    verification = ClaimVerification(user_id=current_user.id, investor_id=investor.id)
+    from ..utils.enums import EntityType
+
+    verification = ClaimVerification(
+        user_id=current_user.id,
+        entity_type=EntityType.PERSON,
+        entity_id=person.id,
+    )
     db.session.add(verification)
     db.session.commit()
 
@@ -169,13 +161,13 @@ def verification_view(slug):
         status_type = query.get("type")
         msg = query.get("msg")
 
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return redirect(url_for("search.investor_search"))
 
     return render_template(
         "claiming/email_verification.html",
-        investor=investor,
+        investor=person,
         verification_code=verification_code,
         status_type=status_type,
         msg=msg,
@@ -192,8 +184,8 @@ def verification(slug):
     verification_code = form_data.get("code")
     user_email = form_data.get("email")
 
-    investor = Investor.get_by_slug(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return redirect(url_for("search.investor_search"))
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
@@ -209,41 +201,17 @@ def verification(slug):
         status = Status(StatusType.ERROR, INVALID_EMAIL).get_status()
         return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
 
-    investor.user_id = current_user.id
+    person.user_id = current_user.id
     claim_verification.is_used = True
 
     if not current_user.user_info.first_name:
-        current_user.user_info.first_name = investor.first_name
+        current_user.user_info.first_name = person.first_name
     if not current_user.user_info.last_name:
-        current_user.user_info.last_name = investor.last_name
+        current_user.user_info.last_name = person.last_name
     if not current_user.user_info.username:
         current_user.user_info.set_username()
     if not current_user.user_info.is_complete:
         current_user.user_info.is_complete = True
-
-    investor_point_origin = InvestorOriginPoint.get_by_investor_id(investor.id)
-    if not investor_point_origin:
-        investor_point_origin = InvestorOriginPoint(investor=investor)
-        investor_point_origin.first_name = investor.first_name
-        investor_point_origin.last_name = investor.last_name
-        investor_point_origin.slug = investor.slug
-        investor_point_origin.firm_name = investor.firm_name
-        investor_point_origin.about = investor.about
-        investor_point_origin.position = investor.position
-        investor_point_origin.website = investor.website
-        investor_point_origin.linkedin = investor.linkedin
-        investor_point_origin.twitter = investor.twitter
-        investor_point_origin.email = investor.email
-        investor_point_origin.phone_number = investor.phone_number
-        investor_point_origin.n_investments = investor.n_investments
-        investor_point_origin.n_exits = investor.n_exits
-        investor_point_origin.min_investment = investor.min_investment
-        investor_point_origin.max_investment = investor.max_investment
-        investor_point_origin.location = investor.location
-        investor_point_origin.notable_investments = investor.notable_investments
-        investor_point_origin.rounds = investor.rounds
-        investor_point_origin.industries = investor.industries
-        db.session.add(investor_point_origin)
 
     db.session.commit()
 

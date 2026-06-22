@@ -8,7 +8,6 @@ from ...extensions import db
 from ...models import (
     ClaimRequest,
     Industry,
-    Investor,
     NotableInvestment,
     Person,
     User,
@@ -22,7 +21,6 @@ from ...utils.enums import (
 )
 from ...utils.errors.error_messages import (
     INVALID_CLAIM_REQUEST,
-    INVESTOR_NOT_FOUND,
     NO_CLAIM_REQUEST,
 )
 from .investment_firm import investment_firm as investment_firm_blueprint
@@ -100,7 +98,7 @@ def edit_claim_request(id):
         claim_request.approved_at = datetime.now(UTC)
         claim_request.approved_by = current_user.id
 
-        # New polymorphic path: entity_type/entity_id
+        # Polymorphic path: entity_type/entity_id
         if claim_request.entity_type == EntityType.PERSON and claim_request.entity_id:
             person = Person.get_by_id(claim_request.entity_id)
             if person:
@@ -113,30 +111,10 @@ def edit_claim_request(id):
                     claiming_user.user_info.set_username()
                 if not claiming_user.user_info.is_complete:
                     claiming_user.user_info.is_complete = True
-        elif claim_request.investor_id is not None:
-            # Legacy path: investor_id FK
-            investor = Investor.get_by_id(claim_request.investor_id)
-            if not investor:
-                status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
-                return redirect(url_for("admin.claim_requests_view", _external=True, **status))
-            investor.user = claim_request.user
-            if not claiming_user.user_info.first_name:
-                claiming_user.user_info.first_name = investor.first_name
-            if not claiming_user.user_info.last_name:
-                claiming_user.user_info.last_name = investor.last_name
-            if not claiming_user.user_info.username:
-                claiming_user.user_info.set_username()
-            if not claiming_user.user_info.is_complete:
-                claiming_user.user_info.is_complete = True
 
     elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
-        # Clear entity link on legacy path
-        if claim_request.investor_id is not None:
-            investor = Investor.get_by_id(claim_request.investor_id)
-            if investor:
-                investor.user = None
-        elif claim_request.entity_type == EntityType.PERSON and claim_request.entity_id:
+        if claim_request.entity_type == EntityType.PERSON and claim_request.entity_id:
             person = Person.get_by_id(claim_request.entity_id)
             if person:
                 person.user_id = None

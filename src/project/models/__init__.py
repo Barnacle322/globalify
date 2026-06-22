@@ -14,14 +14,6 @@ from .entity import (
 )
 from .entity_search import delete_data, get_search, sync_one, sync_search_index
 from .helpers import Country, Industry, Round
-from .investor import (
-    InvestmentFirm,
-    InvestmentFirmBookmark,
-    Investor,
-    InvestorBackup,
-    InvestorBookmark,
-    InvestorOriginPoint,
-)
 from .search import SearchHistory
 from .user import (
     EmailVerification,
@@ -35,11 +27,7 @@ __all__ = [
     "Country",
     "Industry",
     "Round",
-    "InvestmentFirm",
-    "InvestmentFirmBookmark",
     "EmailVerification",
-    "Investor",
-    "InvestorBookmark",
     "User",
     "UserInfo",
     "UserPayment",
@@ -47,8 +35,6 @@ __all__ = [
     "NotableInvestment",
     "ClaimRequest",
     "ClaimVerification",
-    "InvestorBackup",
-    "InvestorOriginPoint",
     "SearchHistory",
     # Phase 1c — entity search
     "sync_search_index",

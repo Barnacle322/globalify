@@ -367,7 +367,7 @@ class EntityNotable(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 
 class EntityBookmark(MappedAsDataclass, db.Model, unsafe_hash=True):
-    """A user's bookmark of a Person or Organization (replaces InvestorBookmark + InvestmentFirmBookmark)."""
+    """A user's bookmark of a Person or Organization (Phase 1b replacement for the legacy bookmark models)."""
 
     __tablename__ = "entity_bookmark"
     __table_args__ = (UniqueConstraint("user_id", "entity_type", "entity_id", name="uq_entity_bookmark_user_entity"),)

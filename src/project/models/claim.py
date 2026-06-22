@@ -13,13 +13,11 @@ from ..extensions import db
 from ..utils.enums import EntityType, RequestStatus
 
 if TYPE_CHECKING:
-    from .investor import Investor
     from .user import User
 
 
 class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship("User", back_populates="claim_verifications", init=False)
-    investor: Mapped[Investor | None] = relationship("Investor", back_populates="claim_verifications", init=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, init=False)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id", ondelete="CASCADE"), nullable=False)
@@ -27,10 +25,6 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
     is_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False, init=False
-    )
-    # Legacy FK — nullable during migration window; kept until Phase 1c drops the investor table.
-    investor_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("investor.id", ondelete="CASCADE"), nullable=True, default=None, kw_only=True
     )
     # Polymorphic entity reference (Phase 1b)
     entity_type: Mapped[EntityType | None] = mapped_column(
@@ -77,12 +71,9 @@ class ClaimVerification(MappedAsDataclass, db.Model, unsafe_hash=True):
 
 class ClaimRequest(db.Model):
     user: Mapped[User] = relationship("User", back_populates="claim_requests", uselist=False)
-    investor: Mapped[Investor | None] = relationship("Investor", back_populates="claim_requests", uselist=False)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
-    # Legacy FK — nullable during migration window; kept until Phase 1c drops the investor table.
-    investor_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("investor.id"), nullable=True, default=None)
     # Polymorphic entity reference (Phase 1b)
     entity_type: Mapped[EntityType | None] = mapped_column(
         SQLEnum(EntityType, name="entity_type"), nullable=True, default=None
@@ -108,26 +99,6 @@ class ClaimRequest(db.Model):
     @staticmethod
     def get_by_user_id(user_id: int) -> ClaimRequest | None:
         return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.user_id == user_id))
-
-    @staticmethod
-    def get_with_investor_by_user_id(user_id: int) -> Sequence[ClaimRequest]:
-        """Return requests that still have an investor FK (legacy path)."""
-        from .investor import Investor
-
-        return (
-            db.session.execute(
-                db.select(ClaimRequest)
-                .join(Investor, ClaimRequest.investor_id == Investor.id)
-                .where(ClaimRequest.user_id == user_id)
-                .order_by(ClaimRequest.requested_at.desc())
-            )
-            .scalars()
-            .all()
-        )
-
-    @staticmethod
-    def get_by_investor_id(investor_id: int) -> ClaimRequest | None:
-        return db.session.scalar(db.select(ClaimRequest).where(ClaimRequest.investor_id == investor_id))
 
     @staticmethod
     def get_all() -> Sequence[ClaimRequest]:

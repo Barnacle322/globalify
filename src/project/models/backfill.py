@@ -23,7 +23,8 @@ from __future__ import annotations
 import uuid
 
 from slugify import slugify
-from sqlalchemy.orm import joinedload
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String, func, text
+from sqlalchemy.orm import Mapped, joinedload, mapped_column, relationship
 from thefuzz import fuzz
 
 from ..extensions import db
@@ -42,15 +43,162 @@ from .entity import (
     EntityStage,
     Geography,
     InvestorProfile,
+    NotableInvestment,
     Organization,
     Person,
 )
-from .investor import (
-    InvestmentFirm,
-    InvestmentFirmBookmark,
-    Investor,
-    InvestorBookmark,
+from .helpers import Industry, Round
+
+# ---------------------------------------------------------------------------
+# Legacy ORM classes — defined here so that db.create_all() creates the old
+# tables in test environments and backfill_entities() can query them.
+# These classes are NOT registered in models/__init__.py and should NOT be
+# used outside this module.  The real tables still exist in production until
+# Phase 2d Task 5's migration drops them.
+# ---------------------------------------------------------------------------
+
+_investor_round = db.Table(
+    "investor_round",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
 )
+
+_investor_industry = db.Table(
+    "investor_industry",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+_investor_notable_investment = db.Table(
+    "investor_notable_investment",
+    Column("investor_id", Integer, ForeignKey("investor.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+_investment_firm_notable_investment = db.Table(
+    "investment_firm_notable_investment",
+    Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
+    Column("notable_investment_id", Integer, ForeignKey("notable_investment.id"), primary_key=True),
+)
+
+_investment_firm_round = db.Table(
+    "investment_firm_round",
+    Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
+    Column("round_id", Integer, ForeignKey("round.id"), primary_key=True),
+)
+
+_investment_firm_industry = db.Table(
+    "investment_firm_industry",
+    Column("investment_firm_id", Integer, ForeignKey("investment_firm.id"), primary_key=True),
+    Column("industry_id", Integer, ForeignKey("industry.id"), primary_key=True),
+)
+
+
+class Investor(db.Model):
+    """Legacy ORM class — reads the 'investor' table for backfill purposes only."""
+
+    __tablename__ = "investor"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    first_name: Mapped[str] = mapped_column(String, nullable=False)
+    last_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    slug: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    firm_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    position: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("user.id"), nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+    is_approved: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("false"))
+
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=_investor_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=_investor_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=_investor_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<Investor {self.first_name} {self.last_name}>"
+
+
+class InvestmentFirm(db.Model):
+    """Legacy ORM class — reads the 'investment_firm' table for backfill purposes only."""
+
+    __tablename__ = "investment_firm"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str | None] = mapped_column(String, nullable=True)
+    slug: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    about: Mapped[str | None] = mapped_column(String, nullable=True)
+    website: Mapped[str | None] = mapped_column(String, nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String, nullable=True)
+    twitter: Mapped[str | None] = mapped_column(String, nullable=True)
+    email: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
+    phone_number: Mapped[str | None] = mapped_column(String, nullable=True)
+    n_investments: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_exits: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_employees: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_investment: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    _coordinates: Mapped[str | None] = mapped_column(String, nullable=True)
+    _country: Mapped[str | None] = mapped_column(String, nullable=True)
+    bias: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    search_index: Mapped[str | None] = mapped_column(String, nullable=True)
+    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+
+    notable_investments: Mapped[list[NotableInvestment]] = relationship(secondary=_investment_firm_notable_investment)
+    rounds: Mapped[list[Round]] = relationship(secondary=_investment_firm_round)
+    industries: Mapped[list[Industry]] = relationship(secondary=_investment_firm_industry)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def __repr__(self):
+        return f"<InvestmentFirm {self.name}>"
+
+
+class InvestorBookmark(db.Model):
+    """Legacy ORM class — reads 'investor_bookmark' for backfill purposes only."""
+
+    __tablename__ = "investor_bookmark"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investor_id: Mapped[int] = mapped_column(Integer, ForeignKey("investor.id"), nullable=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
+class InvestmentFirmBookmark(db.Model):
+    """Legacy ORM class — reads 'investment_firm_bookmark' for backfill purposes only."""
+
+    __tablename__ = "investment_firm_bookmark"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("user.id"), nullable=False)
+    investment_firm_id: Mapped[int] = mapped_column(Integer, ForeignKey("investment_firm.id"), nullable=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 
 # ---------------------------------------------------------------------------
 # Internal helpers

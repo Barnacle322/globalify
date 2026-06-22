@@ -10,18 +10,16 @@ from flask_login import current_user, login_required
 
 from ..extensions import db
 from ..models import (
-    InvestmentFirm,
-    Investor,
     Notification,
     User,
     UserInfo,
     UserPayment,
     entity_search,
 )
-from ..models.entity import EntityBookmark
+from ..models.entity import EntityBookmark, Organization, Person
 from ..schemas.investor import (
-    InvestmentFirmSchema,
     InvestorSchema,
+    OrganizationSchema,
 )
 from ..utils.decorators import check_user_info_complete, check_verification
 from ..utils.enums import EntityType, Status, StatusType
@@ -71,36 +69,43 @@ def get_investor(slug):
     else:
         unpaid = True
 
-    investor = Investor.get_by_slug(slug) if not unpaid else Investor.get_by_slug_without_contacts(slug)
-    if not investor:
+    person = Person.get_by_slug(slug)
+    if not person:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
-    if not investor.is_public:
+    if not person.is_public:
         return jsonify({"status": "error", "message": "Investor is not public."}), 404
 
+    if unpaid:
+        # Strip contact fields for unpaid users
+        person.website = None
+        person.linkedin = None
+        person.twitter = None
+        person.email = None
+        person.phone_number = None
+
     investor = InvestorSchema(
-        id=investor.id,
-        name=f"{investor.first_name} {investor.last_name}",
-        slug=investor.slug,
-        firm_name=investor.firm_name,
-        about=investor.about,
-        position=investor.position,
-        website=investor.website,
-        linkedin=investor.linkedin,
-        twitter=investor.twitter,
-        email=investor.email,
-        phone_number=investor.phone_number,
-        n_investments=investor.n_investments,
-        n_exits=investor.n_exits,
-        min_max_investment=investor.min_max_investment,
-        location=investor.location,
-        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investor.notable_investments],
-        rounds=[{"id": r.id, "name": r.name} for r in investor.rounds],
-        industries=[{"id": i.id, "name": i.name} for i in investor.industries],
-        user_id=investor.user_id,
+        id=person.id,
+        name=person.full_name,
+        slug=person.slug,
+        firm_name=None,
+        about=person.about,
+        position=person.headline,
+        website=person.website,
+        linkedin=person.linkedin,
+        twitter=person.twitter,
+        email=person.email,
+        phone_number=person.phone_number,
+        n_investments=None,
+        n_exits=None,
+        min_max_investment=None,
+        location=None,
+        notable_investments=[],
+        rounds=[],
+        industries=[],
+        user_id=person.user_id,
     )
 
     if current_user.is_authenticated:
-        # Phase 1b: check EntityBookmark (PERSON) instead of InvestorBookmark.
         is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.PERSON, investor.id)
     else:
         is_bookmarked = False
@@ -147,11 +152,11 @@ def check_investor():
 @check_user_info_complete
 @check_verification
 def toggle_bookmark_investor(investor_id):
-    investor = Investor.get_by_id(int(investor_id))
+    investor = Person.get_by_id(int(investor_id))
     if not investor or not investor.is_public:
         return jsonify({"status": "error", "message": "Investor not found."}), 404
 
-    # Phase 1b: use EntityBookmark (PERSON entity type) instead of InvestorBookmark.
+    # Use EntityBookmark (PERSON entity type).
     if EntityBookmark.exists(current_user.id, EntityType.PERSON, investor.id):
         existing = db.session.scalar(
             db.select(EntityBookmark).where(
@@ -217,14 +222,14 @@ def get_investment_firm(slug):
     else:
         unpaid = True
 
-    investment_firm_model = InvestmentFirm.get_by_slug(slug)
+    investment_firm_model = Organization.get_by_slug(slug)
 
     if not investment_firm_model:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
     if not investment_firm_model.is_public:
         return jsonify({"status": "error", "message": "Investment Firm is not public."}), 404
 
-    investment_firm = InvestmentFirmSchema(
+    investment_firm = OrganizationSchema(
         id=investment_firm_model.id,
         name=investment_firm_model.name,
         slug=investment_firm_model.slug,
@@ -234,18 +239,17 @@ def get_investment_firm(slug):
         twitter=investment_firm_model.twitter,
         email=investment_firm_model.email,
         phone_number=investment_firm_model.phone_number,
-        n_investments=investment_firm_model.n_investments,
-        n_exits=investment_firm_model.n_exits,
+        n_investments=None,
+        n_exits=None,
         n_employees=investment_firm_model.n_employees,
-        min_max_investment=investment_firm_model.min_max_investment,
-        location=investment_firm_model.location,
-        notable_investments=[{"id": ni.id, "name": ni.name} for ni in investment_firm_model.notable_investments],
-        rounds=[{"id": r.id, "name": r.name} for r in investment_firm_model.rounds],
-        industries=[{"id": i.id, "name": i.name} for i in investment_firm_model.industries],
+        min_max_investment=None,
+        location=None,
+        notable_investments=[],
+        rounds=[],
+        industries=[],
     ).model_dump()
 
     if current_user.is_authenticated:
-        # Phase 1b: check EntityBookmark (ORG) instead of InvestmentFirmBookmark.
         is_bookmarked = EntityBookmark.exists(current_user.id, EntityType.ORG, investment_firm_model.id)
     else:
         is_bookmarked = False
@@ -266,11 +270,10 @@ def get_investment_firm(slug):
 @check_user_info_complete
 @check_verification
 def toggle_bookmark_investment_firm(firm_id):
-    investment_firm = InvestmentFirm.get_by_id(int(firm_id))
+    investment_firm = Organization.get_by_id(int(firm_id))
     if not investment_firm or not investment_firm.is_public:
         return jsonify({"status": "error", "message": "Investment Firm not found."}), 404
 
-    # Phase 1b: use EntityBookmark (ORG entity type) instead of InvestmentFirmBookmark.
     if EntityBookmark.exists(current_user.id, EntityType.ORG, investment_firm.id):
         existing = db.session.scalar(
             db.select(EntityBookmark).where(

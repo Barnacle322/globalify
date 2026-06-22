@@ -33,7 +33,6 @@ from ..utils.enums import Tier
 
 if TYPE_CHECKING:
     from .claim import ClaimRequest, ClaimVerification
-    from .investor import InvestmentFirmBookmark, Investor, InvestorBackup, InvestorBookmark
     from .search import SearchHistory
 
 
@@ -52,18 +51,6 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
     )
     claim_verifications: Mapped[list[ClaimVerification]] = relationship(
         "ClaimVerification", back_populates="user", init=False
-    )
-
-    investor: Mapped[Investor] = relationship("Investor", back_populates="user", uselist=False, init=False)
-    investor_backup: Mapped[InvestorBackup | None] = relationship(
-        "InvestorBackup", back_populates="user", uselist=False, init=False
-    )
-
-    investor_bookmarks: Mapped[list[InvestorBookmark]] = relationship(
-        "InvestorBookmark", back_populates="user", uselist=True, init=False
-    )
-    investment_firm_bookmarks: Mapped[list[InvestmentFirmBookmark]] = relationship(
-        "InvestmentFirmBookmark", back_populates="user", uselist=True, init=False
     )
 
     search_histories: Mapped[list[SearchHistory]] = relationship(

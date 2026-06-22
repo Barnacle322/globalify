@@ -70,7 +70,7 @@ def test_claim_verification_create_with_entity(db_session):
     assert fetched is not None
     assert fetched.entity_type == EntityType.PERSON
     assert fetched.entity_id == person.id
-    assert fetched.investor_id is None
+    # investor_id removed from ORM in Phase 2d Task 4
 
 
 def test_claim_verification_entity_type_org(db_session):
@@ -124,7 +124,8 @@ def test_claim_verification_investor_id_nullable(db_session):
     db.session.commit()
 
     fetched = db.session.get(ClaimVerification, cv.id)
-    assert fetched.investor_id is None  # nullable during migration window
+    # investor_id column removed from ORM in Phase 2d Task 4 (DB column dropped in Task 5)
+    assert fetched.entity_type == EntityType.PERSON
 
 
 def test_claim_verification_get_by_token(db_session):
@@ -220,7 +221,7 @@ def test_claim_request_create_with_entity(db_session):
     assert fetched is not None
     assert fetched.entity_type == EntityType.PERSON
     assert fetched.entity_id == person.id
-    assert fetched.investor_id is None
+    # investor_id removed from ORM in Phase 2d Task 4
 
 
 def test_claim_request_get_by_id(db_session):

@@ -4,7 +4,9 @@
 
 {% block meta_description %}{{ meta_description }}{% endblock %}
 
-{% block canonical %}https://globalify.xyz{{ canonical_path }}{% endblock %}
+{% block canonical %}{{ canonical_full if canonical_full else "https://globalify.xyz" + canonical_path }}{% endblock %}
+
+{% block head_extra %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-gray-50 pt-20">
@@ -13,6 +15,9 @@
     <header class="bg-white border-b border-gray-100">
         <div class="mx-auto max-w-7xl px-6 py-10">
             <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{{ heading }}</h1>
+            {% if facet_intro %}
+            <p class="mt-2 text-sm text-gray-600">{{ facet_intro }}</p>
+            {% endif %}
             <p class="mt-2 text-sm text-gray-500">
                 {% if found > 0 %}
                     {{ found }} result{{ 's' if found != 1 else '' }} found
@@ -152,8 +157,9 @@
 {% block json_ld %}
 {%- if entities %}
 {%- set items = [] %}
+{%- set _entity_base = "/investors" if entity_type == 'person' else "/firms" %}
 {%- for entity in entities %}
-{%- set item_url = "https://globalify.xyz" + canonical_path + "/" + (entity.slug or entity.id | string) %}
+{%- set item_url = "https://globalify.xyz" + _entity_base + "/" + (entity.slug or entity.id | string) %}
 {%- set item = {"name": entity.name, "url": item_url, "description": entity.headline or entity.about or ""} %}
 {%- set _ = items.append(item) %}
 {%- endfor %}
@@ -161,9 +167,11 @@
 {% include "partials/_jsonld_itemlist.html" %}
 {%- endif %}
 
+{%- if not breadcrumbs %}
 {%- set breadcrumbs = [
     {"name": "Home", "url": "https://globalify.xyz/"},
     {"name": heading, "url": "https://globalify.xyz" + canonical_path}
 ] %}
+{%- endif %}
 {% include "partials/_jsonld_breadcrumb.html" %}
 {% endblock %}

@@ -8,18 +8,22 @@ from __future__ import annotations
 
 import logging
 
-from flask import Blueprint, abort, render_template, request
+from flask import Blueprint, abort, redirect, render_template, request
 
 from ..models import entity_search
 from ..models.entity import Organization, Person, load_profile_bundle
 from ..utils.enums import EntityType
 from ..utils.funcs import generate_pagination
+from ..utils.seo.slugs import build_facet_canonical, classify_segment, order_segments
 
 log = logging.getLogger(__name__)
 
 public = Blueprint("public", __name__)
 
 PER_PAGE = 18
+
+# Minimum result count to allow indexing a facet page
+MIN_FACET_RESULTS = 3
 
 
 def _parse_filters() -> dict:
@@ -167,28 +171,295 @@ def firms():
 
 
 # ---------------------------------------------------------------------------
-# Profile pages
+# Facet heading helpers
+# ---------------------------------------------------------------------------
+
+_SEGMENT_LABELS: dict[str, str] = {
+    # investor_type values
+    "angel": "Angel",
+    "vc": "VC",
+    "corporate": "Corporate",
+    "family_office": "Family Office",
+    "accelerator": "Accelerator",
+    "micro_vc": "Micro-VC",
+    # org_type values
+    "vc_firm": "VC Firm",
+    "hedge_fund": "Hedge Fund",
+    "pe_firm": "PE Firm",
+    "angel_network": "Angel Network",
+    "government": "Government",
+    # stage values
+    "pre_seed": "Pre-Seed",
+    "seed": "Seed",
+    "series_a": "Series A",
+    "series_b": "Series B",
+    "series_c": "Series C",
+    "series_d_plus": "Series D+",
+    "growth": "Growth",
+    "late_stage": "Late-Stage",
+}
+
+
+def _label(value: str) -> str:
+    """Return a human-readable label for an enum value or slug."""
+    return _SEGMENT_LABELS.get(value, value.replace("_", " ").replace("-", " ").title())
+
+
+def _build_facet_heading(classified: list[tuple[str, str, str]], entity_kind) -> tuple[str, str]:
+    """Return (h1_heading, intro_sentence) for a facet page.
+
+    Examples:
+        [("stages", "seed", "stage")]               → "Seed-stage Investors"
+        [("industries", "fintech", "sector")]        → "Fintech Investors"
+        [("stages", "seed", "stage"), ("industries", "fintech", "sector")]
+                                                     → "Seed-stage Fintech Investors"
+        [("geographies", "london", "geo")]           → "Investors in London"
+    """
+    from ..utils.enums import EntityType
+
+    entity_word = "Investors" if entity_kind == EntityType.PERSON else "Investment Firms"
+
+    # Map segments to display parts
+    type_label = None
+    stage_label = None
+    sector_label = None
+    geo_label = None
+
+    for _facet_field, value, seg_type in classified:
+        if seg_type == "type":
+            type_label = _label(value)
+        elif seg_type == "stage":
+            stage_label = _label(value)
+        elif seg_type == "sector":
+            sector_label = _label(value)
+        elif seg_type == "geo":
+            geo_label = _label(value)
+
+    # Build heading
+    parts = []
+    if type_label:
+        parts.append(type_label)
+    if stage_label:
+        parts.append(f"{stage_label}-stage")
+    if sector_label:
+        parts.append(sector_label)
+    parts.append(entity_word)
+
+    heading = " ".join(parts)
+    if geo_label:
+        heading += f" in {geo_label}"
+
+    # Build short intro sentence
+    intro = f"Browse {heading.lower()} on Globalify — the open global investor directory."
+
+    return heading, intro
+
+
+# ---------------------------------------------------------------------------
+# Facet filter builder
 # ---------------------------------------------------------------------------
 
 
-@public.get("/investors/<slug>")
-def investor_profile(slug: str):
-    """SSR profile page for a single investor (Person entity)."""
-    person = Person.get_by_slug(slug)
-    if person is None:
+def _classified_to_filters(classified: list[tuple[str, str, str]]) -> dict:
+    """Map classified (facet_field, value, segment_type) triples to get_search kwargs."""
+    filters: dict[str, list[str]] = {}
+    for facet_field, value, _seg_type in classified:
+        if facet_field not in filters:
+            filters[facet_field] = []
+        filters[facet_field].append(value)
+
+    # Translate facet_field keys to get_search param names
+    result: dict = {}
+    if "stages" in filters:
+        result["stages"] = filters["stages"]
+    if "industries" in filters:
+        result["industries"] = filters["industries"]
+    if "geographies" in filters:
+        result["geographies"] = filters["geographies"]
+    if "investor_type" in filters:
+        result["investor_type"] = filters["investor_type"]
+    if "org_type" in filters:
+        # org_type is indexed as investor_type in Typesense for ORGs
+        result["investor_type"] = filters["org_type"]
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Facet page renderer (shared between investors + firms resolver)
+# ---------------------------------------------------------------------------
+
+
+def _render_facet_page(
+    classified: list[tuple[str, str, str]],
+    entity_kind,
+    page: int,
+) -> str:
+    """Build and render a facet browse page."""
+    heading, intro = _build_facet_heading(classified, entity_kind)
+    canonical_url = build_facet_canonical(entity_kind, classified)
+    canonical_path = "/" + canonical_url.split("globalify.xyz/", 1)[-1]
+
+    filters = _classified_to_filters(classified)
+
+    try:
+        result = entity_search.get_search(
+            query="*",
+            entity_type=entity_kind.value if hasattr(entity_kind, "value") else str(entity_kind),
+            page=page,
+            per_page=PER_PAGE,
+            **filters,
+        )
+    except Exception:
+        log.warning("Typesense unavailable — degrading facet page to empty results")
+        result = {"found": 0, "page": page, "hits": []}
+
+    found = result.get("found", 0)
+    result_page = int(result.get("page", page))
+    total_pages = max((found + PER_PAGE - 1) // PER_PAGE, 1)
+    pagination = generate_pagination(result_page, total_pages)
+    entities = _hits_to_entities(result.get("hits", []))
+
+    # Robots policy
+    n_facets = len(classified)
+    if n_facets >= 3 or result_page > 1 or found < MIN_FACET_RESULTS:
+        robots = "noindex,follow"
+    else:
+        robots = "index,follow"
+
+    # BreadcrumbList JSON-LD context
+    base_url = "https://globalify.xyz"
+    base_name = "Investors" if entity_kind == EntityType.PERSON else "Investment Firms"
+    base_path = "/investors" if entity_kind == EntityType.PERSON else "/firms"
+    breadcrumbs = [
+        {"name": "Home", "url": f"{base_url}/"},
+        {"name": base_name, "url": f"{base_url}{base_path}"},
+        {"name": heading, "url": canonical_url},
+    ]
+
+    page_title = heading
+    meta_description = intro
+
+    return render_template(
+        "browse/list.html",
+        entities=entities,
+        entity_type=entity_kind,
+        heading=heading,
+        facet_intro=intro,
+        page_title=page_title,
+        meta_description=meta_description,
+        canonical_path=canonical_path,
+        canonical_full=canonical_url,
+        robots=robots,
+        found=found,
+        page=result_page,
+        total_pages=total_pages,
+        pagination=pagination,
+        query="",
+        breadcrumbs=breadcrumbs,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Profile pages (unified <path:path> resolvers)
+# ---------------------------------------------------------------------------
+
+
+@public.get("/investors/<path:path>", endpoint="investor_profile")
+def investor_resolver(path: str):
+    """Unified resolver: /investors/<path> → facet page OR person profile OR 404."""
+    segments = [s for s in path.split("/") if s]
+
+    if len(segments) == 1:
+        seg = segments[0]
+        classification = classify_segment(seg, EntityType.PERSON)
+        if classification is not None:
+            # Single-facet page
+            page = request.args.get("page", 1, type=int)
+            return _render_facet_page([classification], EntityType.PERSON, page)
+
+        # Try profile
+        person = Person.get_by_slug(seg)
+        if person is not None:
+            return _render_person_profile(person)
+
         abort(404)
+
+    # Multiple segments → must all be valid facets
+    classified = []
+    for seg in segments:
+        c = classify_segment(seg, EntityType.PERSON)
+        if c is None:
+            abort(404)
+        classified.append(c)
+
+    # Canonical redirect if out of order or has duplicate facet types
+    ordered, warnings = order_segments(classified)
+    ordered_slugs = [s.replace("_", "-") for _, s, _ in ordered]
+    input_slugs = segments
+
+    if warnings or ordered_slugs != input_slugs:
+        canonical_url = build_facet_canonical(EntityType.PERSON, classified)
+        return redirect(canonical_url, 301)
+
+    page = request.args.get("page", 1, type=int)
+    return _render_facet_page(ordered, EntityType.PERSON, page)
+
+
+@public.get("/firms/<path:path>", endpoint="firm_profile")
+def firm_resolver(path: str):
+    """Unified resolver: /firms/<path> → facet page OR org profile OR 404."""
+    segments = [s for s in path.split("/") if s]
+
+    if len(segments) == 1:
+        seg = segments[0]
+        classification = classify_segment(seg, EntityType.ORG)
+        if classification is not None:
+            # Single-facet page
+            page = request.args.get("page", 1, type=int)
+            return _render_facet_page([classification], EntityType.ORG, page)
+
+        # Try profile
+        org = Organization.get_by_slug(seg)
+        if org is not None:
+            return _render_org_profile(org)
+
+        abort(404)
+
+    # Multiple segments → must all be valid facets
+    classified = []
+    for seg in segments:
+        c = classify_segment(seg, EntityType.ORG)
+        if c is None:
+            abort(404)
+        classified.append(c)
+
+    # Canonical redirect if out of order or has duplicate facet types
+    ordered, warnings = order_segments(classified)
+    ordered_slugs = [s.replace("_", "-") for _, s, _ in ordered]
+    input_slugs = segments
+
+    if warnings or ordered_slugs != input_slugs:
+        canonical_url = build_facet_canonical(EntityType.ORG, classified)
+        return redirect(canonical_url, 301)
+
+    page = request.args.get("page", 1, type=int)
+    return _render_facet_page(ordered, EntityType.ORG, page)
+
+
+# ---------------------------------------------------------------------------
+# Profile render helpers
+# ---------------------------------------------------------------------------
+
+
+def _render_person_profile(person: Person):
+    """Render person profile page (identical to 2b implementation)."""
+    from types import SimpleNamespace
 
     bundle = load_profile_bundle(EntityType.PERSON, person.id)
     profile = bundle["profile"]
     affiliations = bundle["affiliations"]
 
-    # Build a helper object that the JSON-LD partial expects
-    # (person model uses first_name/last_name; partial expects .full_name etc.)
     full_name = f"{person.first_name} {person.last_name or ''}".strip()
-
-    # Primary affiliation for JSON-LD worksFor
-    # Use SimpleNamespace so closures over local vars work without class-body scoping issues.
-    from types import SimpleNamespace
 
     primary_aff = None
     if affiliations:
@@ -214,8 +485,6 @@ def investor_profile(slug: str):
         person.about[:140] if person.about else f"{full_name} investor profile on Globalify"
     )
 
-    # Pro-gating: contact never emitted for anonymous/non-Pro users.
-    # Pro billing not yet built — treat all viewers as non-Pro.
     viewer_is_pro = False
 
     return render_template(
@@ -240,18 +509,13 @@ def investor_profile(slug: str):
     )
 
 
-@public.get("/firms/<slug>")
-def firm_profile(slug: str):
-    """SSR profile page for a single investment firm (Organization entity)."""
-    org = Organization.get_by_slug(slug)
-    if org is None:
-        abort(404)
+def _render_org_profile(org: Organization):
+    """Render org profile page (identical to 2b implementation)."""
+    from types import SimpleNamespace
 
     bundle = load_profile_bundle(EntityType.ORG, org.id)
     profile = bundle["profile"]
     affiliations = bundle["affiliations"]
-
-    from types import SimpleNamespace
 
     org_proxy = SimpleNamespace(
         name=org.name,
@@ -264,7 +528,6 @@ def firm_profile(slug: str):
         founded_year=None,  # not in model yet
     )
 
-    # Build affiliations list for JSON-LD member list
     aff_proxies = []
     for aff in affiliations:
         p = aff.person

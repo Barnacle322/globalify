@@ -55,7 +55,7 @@ def investor_slug(slug):
     Preserves query string so status flash params forwarded from claim flow still work.
     """
     qs = request.query_string.decode()
-    target = url_for("public.investor_profile", slug=slug)
+    target = url_for("public.investor_profile", path=slug)
     if qs:
         target = f"{target}?{qs}"
     return redirect(target, code=301)
@@ -299,7 +299,7 @@ def toggle_bookmark_investment_firm(firm_id):
 def investment_firm_slug(slug):
     """Legacy route — 301 redirect to the new SSR profile page /firms/<slug>."""
     qs = request.query_string.decode()
-    target = url_for("public.firm_profile", slug=slug)
+    target = url_for("public.firm_profile", path=slug)
     if qs:
         target = f"{target}?{qs}"
     return redirect(target, code=301)

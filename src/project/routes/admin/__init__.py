@@ -10,10 +10,12 @@ from ...models import (
     Industry,
     Investor,
     NotableInvestment,
+    Person,
     User,
 )
 from ...utils.decorators import admin_only
 from ...utils.enums import (
+    EntityType,
     RequestStatus,
     Status,
     StatusType,
@@ -86,35 +88,59 @@ def edit_claim_request(id):
         status = Status(StatusType.ERROR, "User not found").get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
 
-    investor = Investor.get_by_id(claim_request.investor_id)
-    if not investor:
-        status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
-        return redirect(url_for("admin.claim_requests_view", _external=True, **status))
-
     form_data = request.get_json()
     claim_status = form_data.get("status")
 
     if claim_status not in [RequestStatus.APPROVED.value, RequestStatus.REJECTED.value]:
         status = Status(StatusType.ERROR, INVALID_CLAIM_REQUEST).get_status()
         return redirect(url_for("admin.claim_requests_view", _external=True, **status))
-    elif claim_status == RequestStatus.APPROVED.value:
+
+    if claim_status == RequestStatus.APPROVED.value:
         claim_request.status = RequestStatus.APPROVED
         claim_request.approved_at = datetime.now(UTC)
         claim_request.approved_by = current_user.id
-        investor.user = claim_request.user
 
-        if not claiming_user.user_info.first_name:
-            claiming_user.user_info.first_name = investor.first_name
-        if not claiming_user.user_info.last_name:
-            claiming_user.user_info.last_name = investor.last_name
-        if not claiming_user.user_info.username:
-            claiming_user.user_info.set_username()
-        if not claiming_user.user_info.is_complete:
-            claiming_user.user_info.is_complete = True
+        # New polymorphic path: entity_type/entity_id
+        if claim_request.entity_type == EntityType.PERSON and claim_request.entity_id:
+            person = Person.get_by_id(claim_request.entity_id)
+            if person:
+                person.user_id = claim_request.user_id
+                if not claiming_user.user_info.first_name:
+                    claiming_user.user_info.first_name = person.first_name
+                if not claiming_user.user_info.last_name:
+                    claiming_user.user_info.last_name = person.last_name
+                if not claiming_user.user_info.username:
+                    claiming_user.user_info.set_username()
+                if not claiming_user.user_info.is_complete:
+                    claiming_user.user_info.is_complete = True
+        elif claim_request.investor_id is not None:
+            # Legacy path: investor_id FK
+            investor = Investor.get_by_id(claim_request.investor_id)
+            if not investor:
+                status = Status(StatusType.ERROR, INVESTOR_NOT_FOUND).get_status()
+                return redirect(url_for("admin.claim_requests_view", _external=True, **status))
+            investor.user = claim_request.user
+            if not claiming_user.user_info.first_name:
+                claiming_user.user_info.first_name = investor.first_name
+            if not claiming_user.user_info.last_name:
+                claiming_user.user_info.last_name = investor.last_name
+            if not claiming_user.user_info.username:
+                claiming_user.user_info.set_username()
+            if not claiming_user.user_info.is_complete:
+                claiming_user.user_info.is_complete = True
 
     elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
-        investor.user = None
+        # Clear entity link on legacy path
+        if claim_request.investor_id is not None:
+            investor = Investor.get_by_id(claim_request.investor_id)
+            if investor:
+                investor.user = None
+        elif claim_request.entity_type == EntityType.PERSON and claim_request.entity_id:
+            person = Person.get_by_id(claim_request.entity_id)
+            if person:
+                person.user_id = None
+
     db.session.commit()
 
     return jsonify({"message": "Claim request updated"}), 200

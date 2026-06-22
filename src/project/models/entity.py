@@ -125,6 +125,39 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
         """Return the public Person with the given slug, or None."""
         return db.session.scalar(db.select(Person).where(Person.slug == slug, Person.is_public.is_(True)))
 
+    @staticmethod
+    def get_by_id(id: int) -> Person | None:
+        return db.session.scalar(db.select(Person).where(Person.id == id))
+
+    @staticmethod
+    def get_all() -> Sequence[Person]:
+        return db.session.scalars(db.select(Person)).all()
+
+    @staticmethod
+    def get_by_user_id(user_id: int) -> Person | None:
+        return db.session.scalar(db.select(Person).where(Person.user_id == user_id))
+
+    def set_slug(self) -> None:
+        import uuid as _uuid
+
+        from slugify import slugify
+
+        base_slug = slugify(f"{self.first_name} {self.last_name or ''}")
+        existing = db.session.scalar(db.select(Person).where(Person.slug == base_slug))
+        if existing and existing.id != self.id:
+            base_slug = f"{base_slug}-{_uuid.uuid4().hex[:4]}"
+        self.slug = base_slug
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{_uuid.uuid4().hex[:4]}"
+            db.session.commit()
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name or ''}".strip()
+
 
 class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
     """An investment firm, accelerator, or other investing organization."""
@@ -159,6 +192,35 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
         return db.session.scalar(
             db.select(Organization).where(Organization.slug == slug, Organization.is_public.is_(True))
         )
+
+    @staticmethod
+    def get_by_id(id: int) -> Organization | None:
+        return db.session.scalar(db.select(Organization).where(Organization.id == id))
+
+    @staticmethod
+    def get_all() -> Sequence[Organization]:
+        return db.session.scalars(db.select(Organization)).all()
+
+    @staticmethod
+    def get_by_email(email: str) -> Organization | None:
+        return db.session.scalar(db.select(Organization).where(Organization.email == email))
+
+    def set_slug(self) -> None:
+        import uuid as _uuid
+
+        from slugify import slugify
+
+        base_slug = slugify(self.name)
+        existing = db.session.scalar(db.select(Organization).where(Organization.slug == base_slug))
+        if existing and existing.id != self.id:
+            base_slug = f"{base_slug}-{_uuid.uuid4().hex[:4]}"
+        self.slug = base_slug
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            self.slug = f"{base_slug}-{_uuid.uuid4().hex[:4]}"
+            db.session.commit()
 
 
 class Affiliation(MappedAsDataclass, db.Model, unsafe_hash=True):

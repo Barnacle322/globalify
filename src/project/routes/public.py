@@ -175,19 +175,35 @@ def firms():
 # ---------------------------------------------------------------------------
 
 _SEGMENT_LABELS: dict[str, str] = {
-    # investor_type values
+    # investor_type / org_type shared values
     "angel": "Angel",
     "vc": "VC",
     "corporate": "Corporate",
+    "angel_syndicate": "Angel Syndicate",
+    "angel_group": "Angel Group",
+    "angel_network": "Angel Network",
+    "scout": "Scout",
+    "vc_firm": "VC Firm",
+    "micro_vc": "Micro-VC",
+    "growth_equity": "Growth Equity",
+    "corporate_vc": "Corporate VC",
     "family_office": "Family Office",
     "accelerator": "Accelerator",
-    "micro_vc": "Micro-VC",
-    # org_type values
-    "vc_firm": "VC Firm",
-    "hedge_fund": "Hedge Fund",
+    "incubator": "Incubator",
+    "venture_studio": "Venture Studio",
+    "private_equity": "Private Equity",
     "pe_firm": "PE Firm",
-    "angel_network": "Angel Network",
+    "venture_debt": "Venture Debt",
+    "crowdfunding_platform": "Crowdfunding Platform",
+    "grant_program": "Grant Program",
+    "government_program": "Government Program",
     "government": "Government",
+    "search_fund": "Search Fund",
+    "fund_of_funds": "Fund of Funds",
+    "lp_fund_of_funds": "LP / Fund of Funds",
+    "limited_partner": "Limited Partner",
+    "hedge_fund": "Hedge Fund",
+    "syndicate": "Syndicate",
     # stage values
     "pre_seed": "Pre-Seed",
     "seed": "Seed",
@@ -279,8 +295,7 @@ def _classified_to_filters(classified: list[tuple[str, str, str]]) -> dict:
     if "investor_type" in filters:
         result["investor_type"] = filters["investor_type"]
     if "org_type" in filters:
-        # org_type is indexed as investor_type in Typesense for ORGs
-        result["investor_type"] = filters["org_type"]
+        result["org_type"] = filters["org_type"]
     return result
 
 

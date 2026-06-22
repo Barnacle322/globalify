@@ -71,6 +71,7 @@ def _build_schema() -> dict:
             {"name": "stages", "type": "string[]", "facet": True, "optional": True},
             {"name": "notable_investments", "type": "string[]", "optional": True},
             {"name": "investor_type", "type": "string", "facet": True, "optional": True},
+            {"name": "org_type", "type": "string", "facet": True, "optional": True},
             {"name": "lead_pref", "type": "string", "facet": True, "optional": True},
             {"name": "accepts_cold_inbound", "type": "bool", "facet": True, "optional": True},
             {"name": "is_active", "type": "bool", "facet": True, "optional": True},
@@ -290,6 +291,8 @@ def sync_search_index(recreate: bool = False) -> None:
                 doc["linkedin"] = org.linkedin
             if org.twitter:
                 doc["twitter"] = org.twitter
+            if org.org_type is not None:
+                doc["org_type"] = org.org_type.value
 
             # person_names: all affiliated persons
             affiliations = db.session.scalars(db.select(Affiliation).where(Affiliation.organization_id == org.id)).all()
@@ -409,6 +412,7 @@ def get_search(
     country_code: list[str] | None = None,
     geographies: list[str] | None = None,
     investor_type: list[str] | None = None,
+    org_type: list[str] | None = None,
     lead_pref: str | None = None,
     accepts_cold_inbound: bool | None = None,
     is_active: bool | None = None,
@@ -444,6 +448,7 @@ def get_search(
         .filter_by("country_code", country_code, exclusivity=False)
         .filter_by("geographies", geographies, exclusivity=False)
         .filter_by("investor_type", investor_type, exclusivity=False)
+        .filter_by("org_type", org_type, exclusivity=False)
     )
 
     if lead_pref:

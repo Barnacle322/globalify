@@ -128,6 +128,16 @@ def edit_claim_request(id):
                     claiming_user.user_info.set_username()
                 if not claiming_user.user_info.is_complete:
                     claiming_user.user_info.is_complete = True
+        elif claim_request.entity_type == EntityType.ORG and claim_request.entity_id:
+            org = Organization.get_by_id(claim_request.entity_id)
+            if org:
+                org.user_id = claim_request.user_id
+                if not claiming_user.user_info.first_name:
+                    claiming_user.user_info.first_name = org.name
+                if not claiming_user.user_info.username:
+                    claiming_user.user_info.set_username()
+                if not claiming_user.user_info.is_complete:
+                    claiming_user.user_info.is_complete = True
 
     elif claim_status == RequestStatus.REJECTED.value:
         claim_request.status = RequestStatus.REJECTED
@@ -135,6 +145,10 @@ def edit_claim_request(id):
             person = Person.get_by_id(claim_request.entity_id)
             if person:
                 person.user_id = None
+        elif claim_request.entity_type == EntityType.ORG and claim_request.entity_id:
+            org = Organization.get_by_id(claim_request.entity_id)
+            if org:
+                org.user_id = None
 
     db.session.commit()
 

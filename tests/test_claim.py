@@ -733,3 +733,157 @@ class TestClaimCtaOnOrgProfile:
         assert b"Verified" in resp.data or b"Claimed" in resp.data, (
             "Verified badge must appear on a claimed org profile"
         )
+
+
+# ---------------------------------------------------------------------------
+# Test 12: Cross-entity token rejection — FIX 1 auth-bypass guard
+# ---------------------------------------------------------------------------
+
+
+class TestCrossEntityTokenRejection:
+    """A token minted for one entity must NOT claim a different entity (FIX 1)."""
+
+    def test_person_a_token_cannot_claim_person_b(self, db_app, client, monkeypatch):
+        """A token minted for Person A posted to Person B's verify URL must be rejected.
+
+        Person B's user_id must remain None after the attempt.
+        """
+        import project.routes.claim as claim_mod
+        from project.extensions import db
+        from project.models import ClaimVerification
+        from project.models.entity import Person
+        from project.utils.enums import EntityType
+
+        monkeypatch.setattr(claim_mod, "send_email", lambda *a, **kw: True)
+
+        with db_app.app_context():
+            user = _make_user(db, "crossentity-user@example.com")
+            person_a = _make_person(db, first_name="Alice", last_name="A", slug="alice-a", email="alice-a@example.com")
+            person_b = _make_person(db, first_name="Bob", last_name="B", slug="bob-b", email="bob-b@example.com")
+            db.session.flush()
+
+            # Token minted FOR Person A
+            verification = ClaimVerification(
+                user_id=user.id,
+                entity_type=EntityType.PERSON,
+                entity_id=person_a.id,
+            )
+            db.session.add(verification)
+            db.session.commit()
+            user_id = user.id
+            slug_b = person_b.slug
+            token = verification.token
+
+        _login(client, user_id)
+        # POST to Person B's verify URL with Person A's token
+        resp = client.post(
+            f"/investor/{slug_b}/claim/email/verify",
+            json={"code": token},
+            follow_redirects=False,
+        )
+
+        with db_app.app_context():
+            fetched_b = Person.get_by_slug(slug_b)
+            assert fetched_b.user_id is None, (
+                f"Person B's user_id should remain None, but got {fetched_b.user_id} — "
+                "cross-entity token was accepted (auth bypass)"
+            )
+        assert resp.status_code == 302
+
+    def test_person_token_cannot_claim_org(self, db_app, client, monkeypatch):
+        """A PERSON token posted to a firm's verify URL must be rejected.
+
+        The org's user_id must remain None after the attempt.
+        """
+        import project.routes.claim as claim_mod
+        from project.extensions import db
+        from project.models import ClaimVerification
+        from project.models.entity import Organization
+        from project.utils.enums import EntityType
+
+        monkeypatch.setattr(claim_mod, "send_email", lambda *a, **kw: True)
+
+        with db_app.app_context():
+            user = _make_user(db, "crossentity-user2@example.com")
+            person = _make_person(db, first_name="Charlie", last_name="C", slug="charlie-c", email="c@example.com")
+            org = _make_org(db, name="Omega VC", slug="omega-vc", email="info@omega.vc")
+            db.session.flush()
+
+            # Token minted FOR person (EntityType.PERSON)
+            verification = ClaimVerification(
+                user_id=user.id,
+                entity_type=EntityType.PERSON,
+                entity_id=person.id,
+            )
+            db.session.add(verification)
+            db.session.commit()
+            user_id = user.id
+            org_slug = org.slug
+            token = verification.token
+
+        _login(client, user_id)
+        # POST to org verify URL with a PERSON token
+        resp = client.post(
+            f"/firm/{org_slug}/claim/email/verify",
+            json={"code": token},
+            follow_redirects=False,
+        )
+
+        with db_app.app_context():
+            fetched_org = db.session.scalar(db.select(Organization).where(Organization.slug == org_slug))
+            assert fetched_org.user_id is None, (
+                f"Org's user_id should remain None, but got {fetched_org.user_id} — "
+                "PERSON token was accepted by firm verify (auth bypass)"
+            )
+        assert resp.status_code == 302
+
+
+# ---------------------------------------------------------------------------
+# Test 13: Admin approving an ORG claim request binds organization.user_id — FIX 2
+# ---------------------------------------------------------------------------
+
+
+class TestAdminOrgClaimApproval:
+    """Admin edit_claim_request must bind organization.user_id on ORG approval (FIX 2)."""
+
+    def test_approving_org_claim_binds_organization_user_id(self, db_app, client):
+        """POST /admin/claim-request/<id> with status=approved for an ORG claim must set org.user_id."""
+        from project.extensions import db
+        from project.models import ClaimRequest
+        from project.models.entity import Organization
+        from project.utils.enums import EntityType, RequestStatus
+
+        with db_app.app_context():
+            admin_user = _make_user(db, "admin-approver@example.com", is_admin=True)
+            claimer = _make_user(db, "org-claimer@example.com")
+            org = _make_org(db, name="Zeta VC", slug="zeta-vc", email="info@zeta.vc")
+            db.session.flush()
+
+            claim_request = ClaimRequest(
+                user_id=claimer.id,
+                entity_type=EntityType.ORG,
+                entity_id=org.id,
+                status=RequestStatus.PENDING,
+            )
+            db.session.add(claim_request)
+            db.session.commit()
+            admin_id = admin_user.id
+            claim_request_id = claim_request.id
+            claimer_id = claimer.id
+            org_slug = org.slug
+
+        _login(client, admin_id)
+        resp = client.post(
+            f"/admin/claim-request/{claim_request_id}",
+            json={"status": "approved"},
+            follow_redirects=False,
+        )
+
+        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.data}"
+
+        with db_app.app_context():
+            fetched_org = db.session.scalar(db.select(Organization).where(Organization.slug == org_slug))
+            assert fetched_org is not None
+            assert fetched_org.user_id == claimer_id, (
+                f"Expected org.user_id={claimer_id} after admin approval, got {fetched_org.user_id}"
+            )

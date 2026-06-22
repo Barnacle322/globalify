@@ -1,13 +1,16 @@
 """Claiming blueprint — Phase 2d Task 4 + Phase 5 Task 2.
 
-Person claim flows: /investor/<slug>/claim* (unchanged)
-Organization claim flows: /firm/<slug>/claim* (new)
-Shared logic factored through _EntityInfo + _resolve_entity().
+Person claim flows: /investor/<slug>/claim*
+Organization claim flows: /firm/<slug>/claim*
+
+Both flows use identical guards:
+  - token entity_type must match the expected type for the route
+  - token entity_id must match the entity being claimed
+This closes the cross-entity auth bypass where any valid token could claim
+any unclaimed profile.
 """
 
 from __future__ import annotations
-
-from typing import NamedTuple
 
 from flask import (
     Blueprint,
@@ -40,57 +43,6 @@ claim = Blueprint("claim", __name__)
 
 
 # ---------------------------------------------------------------------------
-# Shared entity resolution helper
-# ---------------------------------------------------------------------------
-
-
-class _EntityInfo(NamedTuple):
-    """Resolved entity for either a Person or Organization."""
-
-    entity: Person | Organization
-    entity_type: EntityType
-    display_name: str
-    email: str | None
-    slug: str
-    profile_url_kwargs: dict  # kwargs for url_for() to redirect after claiming
-
-
-def _resolve_entity(entity_type: EntityType, slug: str) -> _EntityInfo | None:
-    """Look up the entity by slug. Returns None if not found."""
-    if entity_type == EntityType.PERSON:
-        person = Person.get_by_slug(slug)
-        if person is None:
-            return None
-        return _EntityInfo(
-            entity=person,
-            entity_type=EntityType.PERSON,
-            display_name=person.full_name,
-            email=person.email,
-            slug=slug,
-            profile_url_kwargs={"endpoint": "main.investor_slug", "slug": slug},
-        )
-    else:
-        org = Organization.get_by_slug(slug)
-        if org is None:
-            return None
-        return _EntityInfo(
-            entity=org,
-            entity_type=EntityType.ORG,
-            display_name=org.name,
-            email=org.email,
-            slug=slug,
-            profile_url_kwargs={"endpoint": "public.firm_profile", "path": slug},
-        )
-
-
-def _redirect_to_profile(info: _EntityInfo, **status_kwargs):
-    """Build a redirect response to the entity's public profile page."""
-    kwargs = dict(info.profile_url_kwargs)
-    endpoint = kwargs.pop("endpoint")
-    return redirect(url_for(endpoint, _external=False, **kwargs, **status_kwargs))
-
-
-# ---------------------------------------------------------------------------
 # Legacy slug routes — redirect to current search
 # ---------------------------------------------------------------------------
 
@@ -102,7 +54,14 @@ def types_view(slug):
     if not person:
         return redirect(url_for("public.investors"))
 
-    return render_template("claiming/index.html", investor=person, entity=person, entity_type="person")
+    masked_email = _mask_email(person.email)
+    return render_template(
+        "claiming/index.html",
+        investor=person,
+        entity=person,
+        entity_type="person",
+        entity_email=masked_email,
+    )
 
 
 @claim.get("/investor/<slug>/claim/manual")
@@ -130,7 +89,7 @@ def manual_view(slug):
 @claim.post("/investor/<slug>/claim/manual")
 @login_required
 def manual(slug):
-    form_data = request.get_json()
+    form_data = request.get_json(silent=True) or {}
     email = form_data.get("email")
 
     # Cap captcha verify (skipped automatically when _CAP_* vars are absent).
@@ -182,11 +141,13 @@ def email_view(slug):
     if not person:
         return redirect(url_for("public.investors"))
 
+    masked_email = _mask_email(person.email)
     return render_template(
         "claiming/email.html",
         investor=person,
         entity=person,
         entity_type="person",
+        entity_email=masked_email,
         status_type=status_type,
         msg=msg,
     )
@@ -272,7 +233,7 @@ def verification(slug):
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
 
-    form_data = request.get_json()
+    form_data = request.get_json(silent=True) or {}
     verification_code = form_data.get("code")
 
     person = Person.get_by_slug(slug)
@@ -286,6 +247,11 @@ def verification(slug):
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:
+        status = Status(StatusType.ERROR, INVALID_CODE).get_status()
+        return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
+
+    # FIX 1 — bind check: reject the token unless it was minted for THIS entity.
+    if claim_verification.entity_type != EntityType.PERSON or claim_verification.entity_id != person.id:
         status = Status(StatusType.ERROR, INVALID_CODE).get_status()
         return redirect(url_for("claim.verification_view", slug=slug, _external=False, **status))
 
@@ -332,11 +298,13 @@ def firm_types_view(slug):
     if not org:
         return redirect(url_for("public.firms"))
 
+    masked_email = _mask_email(org.email)
     return render_template(
         "claiming/index.html",
         investor=org,
         entity=org,
         entity_type="org",
+        entity_email=masked_email,
         claim_manual_url=url_for("claim.firm_manual_view", slug=slug),
         claim_email_url=url_for("claim.firm_email_view", slug=slug) if org.email else None,
     )
@@ -367,7 +335,7 @@ def firm_manual_view(slug):
 @claim.post("/firm/<slug>/claim/manual")
 @login_required
 def firm_manual(slug):
-    form_data = request.get_json()
+    form_data = request.get_json(silent=True) or {}
     email = form_data.get("email")
 
     cap_token = form_data.get("cap-token") or form_data.get("cap_token")
@@ -418,11 +386,13 @@ def firm_email_view(slug):
     if not org:
         return redirect(url_for("public.firms"))
 
+    masked_email = _mask_email(org.email)
     return render_template(
         "claiming/email.html",
         investor=org,
         entity=org,
         entity_type="org",
+        entity_email=masked_email,
         status_type=status_type,
         msg=msg,
     )
@@ -506,7 +476,7 @@ def firm_verification(slug):
     if not isinstance(current_user, User):
         return redirect(url_for("auth.login"))
 
-    form_data = request.get_json()
+    form_data = request.get_json(silent=True) or {}
     verification_code = form_data.get("code")
 
     org = Organization.get_by_slug(slug)
@@ -519,6 +489,11 @@ def firm_verification(slug):
 
     claim_verification = ClaimVerification.get_by_token(verification_code)
     if not claim_verification:
+        status = Status(StatusType.ERROR, INVALID_CODE).get_status()
+        return redirect(url_for("claim.firm_verification_view", slug=slug, _external=False, **status))
+
+    # FIX 1 — bind check: reject the token unless it was minted for THIS entity.
+    if claim_verification.entity_type != EntityType.ORG or claim_verification.entity_id != org.id:
         status = Status(StatusType.ERROR, INVALID_CODE).get_status()
         return redirect(url_for("claim.firm_verification_view", slug=slug, _external=False, **status))
 
@@ -544,3 +519,30 @@ def firm_verification(slug):
 
     status = Status(StatusType.SUCCESS, "Organization claimed.").get_status()
     return redirect(url_for("public.firm_profile", path=slug, _external=False, **status))
+
+
+# ---------------------------------------------------------------------------
+# Email masking helper (FIX 3)
+# ---------------------------------------------------------------------------
+
+
+def _mask_email(email: str | None) -> str | None:
+    """Return an obfuscated email hint so the claimer can recognise their address.
+
+    Only the first character of the local part and the first character of the
+    domain are kept; everything else is replaced with bullets.  Examples:
+      alice@example.com  →  a••••@e••••.com
+      j@x.io             →  j••••@x••••.io
+    Returns None when the email is absent.
+    """
+    if not email:
+        return None
+    try:
+        local, domain = email.split("@", 1)
+        domain_parts = domain.rsplit(".", 1)
+        domain_name = domain_parts[0]
+        tld = f".{domain_parts[1]}" if len(domain_parts) > 1 else ""
+        return f"{local[0]}••••@{domain_name[0]}••••{tld}"
+    except (ValueError, IndexError):
+        # Malformed email — return None so the template hides the field.
+        return None

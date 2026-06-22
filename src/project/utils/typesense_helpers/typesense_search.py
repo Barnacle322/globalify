@@ -60,8 +60,7 @@ class SearchBuilder:
         return self
 
     def filter_by_boolean(self, field: str, value: bool):
-        if field in ["is_public", "is_approved"]:
-            self.filters.append(f"{field}:{str(value).lower()}")
+        self.filters.append(f"{field}:{str(value).lower()}")
         return self
 
     def sort_by(self, sort_by: str | None, sort_desc: bool | None):

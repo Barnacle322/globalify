@@ -2,7 +2,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 import sentry_sdk
-from flask import Flask, g, session
+from flask import Flask, g, send_from_directory, session
 from flask_login import current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -65,6 +65,24 @@ def create_app():
     app.register_blueprint(search)
     app.register_blueprint(settings, url_prefix="/settings")
     app.register_blueprint(admin, url_prefix="/admin")
+
+    # Dev-only route: serve locally uploaded images from instance/uploads/
+    # In production, images are served from the R2 custom domain — this route
+    # is only active when R2 is not configured (dev / CI).
+    if not cfg.r2_is_configured:
+        import pathlib
+
+        uploads_dir = pathlib.Path(app.instance_path) / "uploads"
+
+        @app.route("/uploads/<path:filename>")
+        def serve_dev_upload(filename: str):
+            return send_from_directory(str(uploads_dir), filename)
+
+    # Expose public_url helper in all Jinja2 templates so templates can resolve
+    # a storage key to the correct URL (R2 domain in production, /uploads/ in dev).
+    from .utils.r2 import r2_storage
+
+    app.jinja_env.globals["r2_public_url"] = r2_storage.public_url
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

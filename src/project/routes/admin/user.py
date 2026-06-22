@@ -18,17 +18,8 @@ from ...utils.errors.error_messages import (
     USER_PAYMENT_NOT_FOUND,
 )
 from ...utils.funcs import generate_pagination
+from ...utils.r2 import r2_storage
 from ...utils.scraper import add_https_prefix
-
-
-# TODO(phase-3): upload via R2 — replace stubs below with real upload_picture / delete_blob_from_url
-def upload_picture(picture):  # type: ignore[override]
-    raise NotImplementedError("TODO(phase-3): implement upload via R2")
-
-
-def delete_blob_from_url(url):  # type: ignore[override]
-    pass
-
 
 user = Blueprint("user", __name__)
 
@@ -165,13 +156,14 @@ def update_user(id):
     picture = request.files.get("picture") or None
     if picture:
         try:
-            picture_url = upload_picture(picture)
+            key = r2_storage.upload_image(picture.read(), content_type=picture.mimetype or "image/jpeg")
             if user_info.picture_url:
                 try:
-                    delete_blob_from_url(user_info.picture_url)
+                    r2_storage.delete_object(user_info.picture_url)
                 except Exception as e:
                     print(e)
-            user_info.picture_url = picture_url
+            # Store the storage key (not a URL) in the DB column
+            user_info.picture_url = key
         except Exception as e:
             print(e)
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()

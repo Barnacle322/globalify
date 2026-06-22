@@ -23,7 +23,7 @@
             <div class="flex flex-col items-center justify-center">
                 <a href="/settings/general">
                     <img
-                        src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                        src="{{ r2_public_url(user.user_info.picture_url) if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                         class="size-16 rounded-full border border-gray-200 bg-gray-50"
                     />
                 </a>
@@ -52,7 +52,7 @@
                 />
                 <img
                     v-else
-                    src="{{ user.user_info.picture_url if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
+                    src="{{ r2_public_url(user.user_info.picture_url) if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
                     class="size-10 rounded-full border border-gray-200 bg-gray-50"
                 />
                 <div class="flex flex-col justify-center">

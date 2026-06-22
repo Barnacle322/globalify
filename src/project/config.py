@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     resend_api_key: str | None = Field(default=None, alias="_RESEND_API_KEY")
     email_from: str = Field(default="Globalify <noreply@mail.globalify.xyz>", alias="_EMAIL_FROM")
 
+    # Cloudflare R2 image storage (all optional; gates R2 vs local-dev fallback)
+    r2_account_id: str | None = Field(default=None, alias="_R2_ACCOUNT_ID")
+    r2_access_key_id: str | None = Field(default=None, alias="_R2_ACCESS_KEY_ID")
+    r2_secret_access_key: str | None = Field(default=None, alias="_R2_SECRET_ACCESS_KEY")
+    r2_bucket: str | None = Field(default=None, alias="_R2_BUCKET")
+    r2_public_domain: str | None = Field(default=None, alias="_R2_PUBLIC_DOMAIN")
+
     @property
     def is_testing(self) -> bool:
         return self.env is Environment.TESTING
@@ -47,6 +54,11 @@ class Settings(BaseSettings):
     @property
     def email_is_configured(self) -> bool:
         return bool(self.resend_api_key)
+
+    @property
+    def r2_is_configured(self) -> bool:
+        """True when all required R2 credentials are present."""
+        return bool(self.r2_account_id and self.r2_access_key_id and self.r2_secret_access_key and self.r2_bucket)
 
 
 def get_settings() -> Settings:

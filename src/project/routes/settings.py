@@ -28,17 +28,8 @@ from ..utils.errors.error_messages import (
     NO_CLAIMED_INVESTOR_PROFILE,
     PICTURE_NOT_LOADED,
 )
+from ..utils.r2 import r2_storage
 from ..utils.scraper import add_https_prefix
-
-
-# TODO(phase-3): upload via R2 — replace stubs below with real upload_picture / delete_blob_from_url
-def _upload_picture(picture):
-    raise NotImplementedError("TODO(phase-3): implement upload via R2")
-
-
-def _delete_blob_from_url(url):
-    pass
-
 
 settings = Blueprint("settings", __name__)
 
@@ -138,13 +129,14 @@ def change_personal_info():
 
     if picture := request.files.get("picture"):
         try:
-            picture_url = _upload_picture(picture)
+            key = r2_storage.upload_image(picture.read(), content_type=picture.mimetype or "image/jpeg")
             if user_info.picture_url:
                 try:
-                    _delete_blob_from_url(user_info.picture_url)
+                    r2_storage.delete_object(user_info.picture_url)
                 except Exception as e:
                     print(e)
-            user_info.picture_url = picture_url
+            # Store the storage key (not a URL) in the DB column
+            user_info.picture_url = key
         except Exception as e:
             print(e)
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
@@ -389,10 +381,11 @@ def search_user(search_input):
 
     user_list = []
     for user in users:
+        raw_key = user.user_info.picture_url
         user_element = UserSchema(
             id=user.id,
             email=user.email,
-            picture_url=user.user_info.picture_url,
+            picture_url=r2_storage.public_url(raw_key) if raw_key else None,
         )
         user_list.append(user_element.model_dump())
     return jsonify({"users": user_list})

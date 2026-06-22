@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import pycountry
+from slugify import slugify
 from sqlalchemy import Integer, String, event
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -20,8 +21,12 @@ class Industry(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     category: Mapped[str] = mapped_column(String, nullable=False)
+    slug: Mapped[str | None] = mapped_column(String, nullable=True, unique=True)
 
     def __init__(self, **kwargs):
+        # Auto-generate slug from name if not provided
+        if "slug" not in kwargs and "name" in kwargs:
+            kwargs["slug"] = slugify(kwargs["name"])
         super().__init__(**kwargs)
 
     def __repr__(self):
@@ -47,6 +52,10 @@ class Industry(db.Model):
     @staticmethod
     def get_by_name(name: str) -> Industry | None:
         return db.session.scalar(db.select(Industry).where(Industry.name == name))
+
+    @staticmethod
+    def get_by_slug(slug: str) -> Industry | None:
+        return db.session.scalar(db.select(Industry).where(Industry.slug == slug))
 
     @staticmethod
     def populate() -> None:

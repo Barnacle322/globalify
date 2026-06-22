@@ -169,7 +169,7 @@ def sync_search_index(recreate: bool = False) -> None:
                 if org:
                     doc["org_name"] = org.name
 
-            # industries
+            # industries — indexed as slugs for facet URL matching
             entity_industries = db.session.scalars(
                 db.select(EntityIndustry).where(
                     EntityIndustry.entity_type == EntityType.PERSON,
@@ -180,7 +180,7 @@ def sync_search_index(recreate: bool = False) -> None:
             for ei in entity_industries:
                 ind = db.session.get(Industry, ei.industry_id)
                 if ind:
-                    industries.append(ind.name)
+                    industries.append(ind.slug if ind.slug else ind.name)
             if industries:
                 doc["industries"] = industries
 
@@ -301,7 +301,7 @@ def sync_search_index(recreate: bool = False) -> None:
             if person_names:
                 doc["person_names"] = person_names
 
-            # industries
+            # industries — indexed as slugs for facet URL matching
             entity_industries = db.session.scalars(
                 db.select(EntityIndustry).where(
                     EntityIndustry.entity_type == EntityType.ORG,
@@ -312,7 +312,7 @@ def sync_search_index(recreate: bool = False) -> None:
             for ei in entity_industries:
                 ind = db.session.get(Industry, ei.industry_id)
                 if ind:
-                    industries.append(ind.name)
+                    industries.append(ind.slug if ind.slug else ind.name)
             if industries:
                 doc["industries"] = industries
 

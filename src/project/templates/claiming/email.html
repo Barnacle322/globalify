@@ -2,7 +2,6 @@
 {% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
 <script src="/static/scripts/claiming/email.js" defer></script>
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 {% endblock %} {% block title %} Claim Investor {% endblock %} {% block head %} {{ super() }} {% endblock %} {% block
 content %}
 
@@ -43,7 +42,6 @@ content %}
         <form id="claimForm" class="mt-2 flex w-full flex-col gap-3" slug="{{ investor.slug }}">
             <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" id="email" name="email" value="{{ investor.email }}" />
-            <div class="g-recaptcha" data-sitekey="{{ captcha_site_key }}"></div>
             <button
                 type="submit"
                 class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"

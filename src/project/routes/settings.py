@@ -27,7 +27,7 @@ from ..schemas.investment import FundingRoundSchema
 from ..schemas.investor import InvestorOriginPointSchema, MiniInvestorSchema, RoundSchema
 from ..schemas.user import CompanyInvitationSchema, MemberSchema, SearchCompanySchema, UserSchema
 from ..utils.decorators import check_user_info_complete, check_verification
-from ..utils.enums import CompanyRole, Events, Status, StatusType, Tier
+from ..utils.enums import CompanyRole, Status, StatusType, Tier
 from ..utils.errors.error_messages import (
     AUTH_USERNAME_USED,
     COMPANY_NOT_FOUND,
@@ -52,7 +52,6 @@ from ..utils.errors.error_messages import (
     USER_ALREADY_IN_COMPANY,
     USER_ALREADY_INVITED,
 )
-from ..utils.google_helpers.google_pubsub import send_event
 from ..utils.google_helpers.google_storage import delete_blob_from_url, upload_picture
 from ..utils.scraper import add_https_prefix
 
@@ -776,16 +775,7 @@ def invite_user(company_id):
         status = Status(StatusType.ERROR, USER_ALREADY_IN_COMPANY).get_status()
         return redirect(url_for("settings.company_info_view", company_id=company_id, _external=False, **status))
 
-    send_event(
-        "A user has been invited to a company.",
-        email=user_email,
-        event_type=Events.COMPANY_INVITATION.value,
-        role=user_role.title(),
-        message=invitation_message,
-        company_name=company.name if (company := Company.get_by_id(company_id)) else None,
-        invited_by=current_user.user_info.username,
-    )
-
+    # TODO Phase 3: send company invitation email via email service
     company_invitation = CompanyInvitation(
         company_id=company_id,
         email=user_email,

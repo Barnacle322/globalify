@@ -1,11 +1,6 @@
-import xml.etree.ElementTree as ElementTree
-from datetime import datetime, timedelta
-
 from flask import (
     Blueprint,
-    current_app,
     jsonify,
-    make_response,
     redirect,
     render_template,
     request,
@@ -405,72 +400,6 @@ def mark_notification_read(notification_id):
             return redirect(url)
 
     return jsonify({"status": "success"}), 200
-
-
-@main.route("/sitemap.xml")
-def sitemap():
-    pages = []
-    seven_days_ago = (datetime.now() - timedelta(days=7)).date().isoformat()
-
-    for rule in current_app.url_map.iter_rules():
-        if (
-            rule.methods
-            and "GET" in rule.methods
-            and len(rule.arguments) == 0
-            and not rule.rule.startswith("/admin")
-            and not rule.rule.startswith("/onboarding")
-            and not rule.rule.startswith("/login")
-            and not rule.rule.startswith("/settings")
-            and not rule.rule.startswith("/bookmark")
-            and not rule.rule.startswith("/notification")
-            and not rule.rule.startswith("/payment")
-            and not rule.rule.startswith("/suggestion")
-            and not rule.rule.startswith("/check-investor")
-            and not rule.rule.startswith("/tier-selection")
-            and not rule.rule.startswith("/logout")
-            and not rule.rule.startswith("/health")
-            and "email" not in rule.rule
-            and "history" not in rule.rule
-            and "oauth" not in rule.rule
-        ):
-            pages.append([rule.rule, seven_days_ago])
-
-    root = ElementTree.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
-    for page in pages:
-        url = ElementTree.SubElement(root, "url")
-        loc = ElementTree.SubElement(url, "loc")
-        loc.text = "https://globalify.xyz" + page[0]
-        lastmod = ElementTree.SubElement(url, "lastmod")
-        lastmod.text = page[1]
-        changefreq = ElementTree.SubElement(url, "changefreq")
-        changefreq.text = "weekly"
-        priority = ElementTree.SubElement(url, "priority")
-        priority.text = "0.5"
-
-    sitemap_xml = ElementTree.tostring(root, encoding="utf-8")
-    response = make_response(sitemap_xml)
-    response.headers["Content-Type"] = "application/xml"
-
-    return response
-
-
-@main.route("/robots.txt")
-def robots():
-    robots_txt = """User-agent: *
-Disallow: /admin
-Disallow: /logout
-Disallow: /onboarding
-Disallow: /settings
-Disallow: /login-linkedin
-Disallow: /login-google
-Disallow: /google-oauth
-Disallow: /linkedin-oauth
-Disallow: /payment
-
-Sitemap: https://globalify.xyz/sitemap.xml"""
-    response = make_response(robots_txt)
-    response.headers["Content-Type"] = "text/plain"
-    return response
 
 
 @main.route("/health")

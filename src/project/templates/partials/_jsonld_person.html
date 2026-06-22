@@ -1,0 +1,41 @@
+{#
+  _jsonld_person.html — JSON-LD Person schema (schema.org/Person)
+
+  Expected template variables (all optional; renders minimal valid JSON when absent):
+    person            (obj)  Person model instance with attributes:
+      .full_name      (str)  Person's full name
+      .slug           (str)  URL slug → url / sameAs
+      .headline       (str)  Short bio / headline → description
+      .website_url    (str)  Personal website URL → sameAs[]
+      .linkedin_url   (str)  LinkedIn profile URL → sameAs[]
+      .twitter_url    (str)  Twitter/X profile URL → sameAs[]
+      .location_name  (str)  City/country name → address.addressLocality
+    affiliation       (obj)  Primary Affiliation instance:
+      .title          (str)  Job title → jobTitle
+      .org_name       (str)  Organization name → worksFor.name
+      .org_slug       (str)  Org slug → worksFor.url
+    profile_image_url (str)  Absolute URL to profile image → image
+#}
+{%- if person %}
+{%- set same_as = [] %}
+{%- if person.slug %}{% set _ = same_as.append('https://globalify.xyz/investors/' ~ person.slug) %}{% endif %}
+{%- if person.linkedin_url %}{% set _ = same_as.append(person.linkedin_url) %}{% endif %}
+{%- if person.twitter_url %}{% set _ = same_as.append(person.twitter_url) %}{% endif %}
+{%- if person.website_url %}{% set _ = same_as.append(person.website_url) %}{% endif %}
+{%- set ld = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": person.full_name | default(''),
+    "url": ('https://globalify.xyz/investors/' ~ person.slug) if person.slug else '',
+    "description": person.headline | default(''),
+    "sameAs": same_as
+} %}
+{%- if profile_image_url %}{% set ld = dict(ld, image=profile_image_url) %}{% endif %}
+{%- if affiliation %}
+{%- set works_for = {"@type": "Organization", "name": affiliation.org_name | default('')} %}
+{%- if affiliation.org_slug %}{% set works_for = dict(works_for, url='https://globalify.xyz/firms/' ~ affiliation.org_slug) %}{% endif %}
+{%- set ld = dict(ld, jobTitle=affiliation.title | default(''), worksFor=works_for) %}
+{%- endif %}
+{%- if person.location_name %}{% set ld = dict(ld, address={"@type": "PostalAddress", "addressLocality": person.location_name}) %}{% endif %}
+<script type="application/ld+json">{{ ld | tojson }}</script>
+{%- endif %}

@@ -1,0 +1,92 @@
+{#
+  _nav.html — public navigation bar
+  Links: Logo → /, Investors → /investors, Firms → /firms, Login/Account → /login or /settings
+  No OAuth, investor-mode, billing, or SuperConnect links.
+  Requires menu.js (included in base.html) for mobile open/close.
+  Mobile menu uses id="menu" to match menu.js's getElementById("menu").
+#}
+<nav class="view-navbar fixed top-0 z-50 flex w-full items-center justify-center bg-white border-b border-gray-100" aria-label="Main navigation">
+    <div class="flex w-full max-w-7xl items-center justify-between px-6 py-5">
+        <!-- Logo -->
+        <a href="/" class="relative flex items-center gap-1" aria-label="Globalify home">
+            <img class="h-6" src="/static/elements/logo-black.png" alt="Globalify" />
+            <span
+                class="h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white"
+                aria-label="Beta"
+            >BETA</span>
+        </a>
+        <!-- Desktop links -->
+        <ul class="hidden gap-7 md:flex list-none" role="list">
+            <li><a href="/investors" class="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Investors</a></li>
+            <li><a href="/firms" class="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">Firms</a></li>
+        </ul>
+        <!-- Desktop CTA -->
+        <div class="hidden md:flex items-center gap-3">
+            {% if current_user and current_user.is_authenticated %}
+            <a
+                href="/settings"
+                class="flex items-center justify-center gap-2 rounded-full bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+            >
+                <span>My Account</span>
+            </a>
+            {% else %}
+            <a
+                href="/login"
+                class="flex items-center justify-center gap-2 rounded-full bg-sky-500 px-3 py-2 text-sm text-white transition-colors ease-in-out hover:bg-sky-400"
+            >
+                <div class="flex size-6 items-center justify-center rounded-full bg-white text-black" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                    </svg>
+                </div>
+                Login
+            </a>
+            {% endif %}
+        </div>
+        <!-- Mobile hamburger -->
+        <button
+            class="block md:hidden"
+            onclick="openMenu()"
+            aria-label="Open navigation menu"
+            aria-expanded="false"
+            aria-controls="menu"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-7 w-7" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+        </button>
+    </div>
+</nav>
+
+<!-- Mobile menu drawer -->
+<div id="menu" class="hidden md:hidden" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+    <div class="fixed inset-y-0 right-0 top-0 z-50 w-full overflow-y-auto bg-white p-9 md:max-w-sm">
+        <div class="flex items-center justify-between">
+            <a href="/" class="relative flex items-center gap-1" aria-label="Globalify home">
+                <span class="sr-only">Globalify</span>
+                <img class="h-6 w-auto" src="/static/elements/logo-black.png" alt="" />
+                <span class="h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white">BETA</span>
+            </a>
+            <button type="button" class="-m-2.5 rounded-md p-2.5 text-gray-700" onclick="closeMenu()" aria-label="Close menu">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="mt-6 flow-root">
+            <div class="-my-6 divide-y divide-gray-500/10">
+                <div class="space-y-2 py-6">
+                    <a href="/investors" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-slate-100">Investors</a>
+                    <a href="/firms" class="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-gray-900 hover:bg-slate-100">Firms</a>
+                </div>
+                <div class="py-6">
+                    {% if current_user and current_user.is_authenticated %}
+                    <a href="/settings" class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400">My Account</a>
+                    {% else %}
+                    <a href="/login" class="flex items-center justify-center rounded-xl bg-sky-500 px-3 py-2 text-white transition-colors ease-in-out hover:bg-sky-400">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

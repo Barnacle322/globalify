@@ -1,0 +1,34 @@
+{#
+  _jsonld_breadcrumb.html — JSON-LD BreadcrumbList schema (schema.org/BreadcrumbList)
+
+  Expected template variables:
+    breadcrumbs  (list)  List of dicts with keys:
+      name       (str)   Display name of the breadcrumb item
+      url        (str)   Absolute URL of the breadcrumb item
+
+  Example usage:
+    {% set breadcrumbs = [
+        {"name": "Home", "url": "https://globalify.xyz/"},
+        {"name": "Investors", "url": "https://globalify.xyz/investors"},
+        {"name": "John Smith", "url": "https://globalify.xyz/investors/john-smith"}
+    ] %}
+    {% include "partials/_jsonld_breadcrumb.html" %}
+#}
+{%- if breadcrumbs %}
+{%- set items = [] %}
+{%- for crumb in breadcrumbs %}
+{%- set item = {
+    "@type": "ListItem",
+    "position": loop.index,
+    "name": crumb.name | default(''),
+    "item": crumb.url | default('')
+} %}
+{%- set _ = items.append(item) %}
+{%- endfor %}
+{%- set ld = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": items
+} %}
+<script type="application/ld+json">{{ ld | tojson }}</script>
+{%- endif %}

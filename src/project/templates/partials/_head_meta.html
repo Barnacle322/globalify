@@ -1,0 +1,40 @@
+{#
+  _head_meta.html — page-level meta tags included from base.html
+
+  Jinja blocks (override in child templates):
+    title            — page title text (default: "Globalify")
+    meta_description — meta description content
+    canonical        — canonical URL (default: request.url)
+    og               — entire OG/Twitter block (override to customize)
+
+  Template variables (set in route render_template() or child block context):
+    og_title       (str)  OG title; defaults to block title value
+    og_description (str)  OG description; defaults to meta_description
+    og_image       (str)  Absolute OG image URL; defaults to site default
+    og_type        (str)  OG type; defaults to "website"
+    og_url         (str)  OG/canonical URL; defaults to canonical block value
+#}
+<title>{% block title %}Globalify{% endblock %} · Globalify</title>
+<meta
+    name="description"
+    content="{% block meta_description %}Discover investors and venture capital firms on Globalify — the open investor directory.{% endblock %}"
+/>
+<link rel="canonical" href="{% block canonical %}{{ request.url }}{% endblock %}" />
+
+{% block og %}
+{%- set _page_title = self.title() -%}
+{%- set _page_desc = self.meta_description() -%}
+{%- set _page_url = self.canonical() -%}
+<!-- Open Graph -->
+<meta property="og:type" content="{{ og_type | default('website') }}" />
+<meta property="og:url" content="{{ og_url | default(_page_url) }}" />
+<meta property="og:title" content="{{ og_title | default(_page_title ~ ' · Globalify') }}" />
+<meta property="og:description" content="{{ og_description | default(_page_desc) }}" />
+<meta property="og:image" content="{{ og_image | default('https://globalify.xyz/static/elements/metapreview.png') }}" />
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="{{ og_url | default(_page_url) }}" />
+<meta property="twitter:title" content="{{ og_title | default(_page_title ~ ' · Globalify') }}" />
+<meta property="twitter:description" content="{{ og_description | default(_page_desc) }}" />
+<meta property="twitter:image" content="{{ og_image | default('https://globalify.xyz/static/elements/metapreview.png') }}" />
+{% endblock %}

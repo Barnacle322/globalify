@@ -1,0 +1,38 @@
+{#
+  _jsonld_itemlist.html — JSON-LD ItemList schema (schema.org/ItemList)
+
+  Expected template variables:
+    items       (list)  List of dicts with keys:
+      name        (str)   Display name of the item
+      url         (str)   Absolute URL of the item
+      description (str)   Short description of the item (optional)
+    list_name   (str)   Title / name of the list
+
+  Example usage:
+    {% set items = [
+        {"name": "John Smith", "url": "https://globalify.xyz/investors/john-smith", "description": "Partner at Acme Ventures"},
+        {"name": "Jane Doe", "url": "https://globalify.xyz/investors/jane-doe", "description": "Managing Director at XYZ Capital"}
+    ] %}
+    {% set list_name = "Top Investors on Globalify" %}
+    {% include "partials/_jsonld_itemlist.html" %}
+#}
+{%- if items %}
+{%- set list_elements = [] %}
+{%- for item in items %}
+{%- set list_item = {
+    "@type": "ListItem",
+    "position": loop.index,
+    "url": item.url | default(''),
+    "name": item.name | default('')
+} %}
+{%- if item.description %}{% set list_item = dict(list_item, description=item.description) %}{% endif %}
+{%- set _ = list_elements.append(list_item) %}
+{%- endfor %}
+{%- set ld = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": list_name | default(''),
+    "itemListElement": list_elements
+} %}
+<script type="application/ld+json">{{ ld | tojson }}</script>
+{%- endif %}

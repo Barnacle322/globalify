@@ -5,6 +5,7 @@
     "main": "tailwind.config.js",
     "scripts": {
         "css": "npx postcss ./src/project/static/src/input.css -o ./src/project/static/css/main.css --watch --verbose",
+        "build:css": "npx postcss ./src/project/static/src/input.css -o ./src/project/static/css/main.css",
         "html": "npx prettier --write ./**/*.html --plugin=prettier-plugin-tailwindcss"
     },
     "author": "",

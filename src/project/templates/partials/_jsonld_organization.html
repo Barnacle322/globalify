@@ -1,0 +1,47 @@
+{#
+  _jsonld_organization.html — JSON-LD Organization schema (schema.org/Organization)
+
+  Expected template variables (all optional; renders minimal valid JSON when absent):
+    org               (obj)   Organization model instance with attributes:
+      .name           (str)   Organization name
+      .slug           (str)   URL slug → url / sameAs
+      .description    (str)   Short description → description
+      .website_url    (str)   Official website URL → sameAs[] / url fallback
+      .linkedin_url   (str)   LinkedIn company URL → sameAs[]
+      .twitter_url    (str)   Twitter/X profile URL → sameAs[]
+      .location_name  (str)   City/country name → address.addressLocality
+      .founded_year   (int)   Year founded → foundingDate
+    affiliations      (list)  List of Affiliation instances:
+      .full_name      (str)   Member full name → member.name
+      .slug           (str)   Member slug → member.url
+      .title          (str)   Member title → member.jobTitle (not in schema but useful)
+    profile_image_url (str)   Absolute URL to org logo/image → logo / image
+#}
+{%- if org %}
+{%- set same_as = [] %}
+{%- if org.slug %}{% set _ = same_as.append('https://globalify.xyz/firms/' ~ org.slug) %}{% endif %}
+{%- if org.linkedin_url %}{% set _ = same_as.append(org.linkedin_url) %}{% endif %}
+{%- if org.twitter_url %}{% set _ = same_as.append(org.twitter_url) %}{% endif %}
+{%- if org.website_url %}{% set _ = same_as.append(org.website_url) %}{% endif %}
+{%- set ld = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": org.name | default(''),
+    "url": ('https://globalify.xyz/firms/' ~ org.slug) if org.slug else (org.website_url | default('')),
+    "description": org.description | default(''),
+    "sameAs": same_as
+} %}
+{%- if profile_image_url %}{% set ld = dict(ld, logo=profile_image_url, image=profile_image_url) %}{% endif %}
+{%- if org.founded_year %}{% set ld = dict(ld, foundingDate=org.founded_year | string) %}{% endif %}
+{%- if org.location_name %}{% set ld = dict(ld, address={"@type": "PostalAddress", "addressLocality": org.location_name}) %}{% endif %}
+{%- if affiliations %}
+{%- set members = [] %}
+{%- for aff in affiliations %}
+{%- set member = {"@type": "Person", "name": aff.full_name | default('')} %}
+{%- if aff.slug %}{% set member = dict(member, url='https://globalify.xyz/investors/' ~ aff.slug) %}{% endif %}
+{%- set _ = members.append(member) %}
+{%- endfor %}
+{%- set ld = dict(ld, member=members) %}
+{%- endif %}
+<script type="application/ld+json">{{ ld | tojson }}</script>
+{%- endif %}

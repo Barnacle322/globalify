@@ -513,3 +513,223 @@ class TestExpireAllByUserId:
             fv2 = db.session.get(ClaimVerification, v2_id)
             assert fv1.is_used is True, f"Expected fv1.is_used=True, got {fv1.is_used}"
             assert fv2.is_used is True, f"Expected fv2.is_used=True, got {fv2.is_used}"
+
+
+# ---------------------------------------------------------------------------
+# Helpers for Organization tests
+# ---------------------------------------------------------------------------
+
+
+def _make_org(db, *, name="Acme VC", slug="acme-vc", email=None, user_id=None):
+    """Create a public, approved Organization and return it."""
+    from project.models.entity import Organization
+    from project.utils.enums import OrgType
+
+    org = Organization(
+        name=name,
+        slug=slug,
+        org_type=OrgType.VC_FIRM,
+        email=email,
+        is_public=True,
+        is_approved=True,
+    )
+    db.session.add(org)
+    db.session.flush()
+    if user_id is not None:
+        org.user_id = user_id
+        db.session.flush()
+    return org
+
+
+# ---------------------------------------------------------------------------
+# Test 8: Organization claimed via firm email path — creates ClaimVerification
+# ---------------------------------------------------------------------------
+
+
+class TestOrgEmailPostWithEmail:
+    """POST /firm/<slug>/claim/email when the org has an email on file."""
+
+    def test_creates_claim_verification_row_for_org(self, db_app, client, monkeypatch):
+        """A ClaimVerification row with entity_type=ORG must be created."""
+        import project.routes.claim as claim_mod
+        from project.extensions import db
+        from project.models import ClaimVerification
+        from project.utils.enums import EntityType
+
+        monkeypatch.setattr(claim_mod, "send_email", lambda *a, **kw: True)
+
+        with db_app.app_context():
+            user = _make_user(db, "org-claimant@example.com")
+            org = _make_org(db, slug="beta-vc", email="info@beta.vc")
+            db.session.commit()
+            user_id = user.id
+            slug = org.slug
+
+        _login(client, user_id)
+        resp = client.post(
+            f"/firm/{slug}/claim/email",
+            json={},
+            follow_redirects=False,
+        )
+
+        with db_app.app_context():
+            verification = db.session.scalar(
+                db.select(ClaimVerification).where(ClaimVerification.entity_type == EntityType.ORG)
+            )
+
+        assert verification is not None, "Expected a ClaimVerification with entity_type=ORG"
+        assert resp.status_code in (302, 200)
+
+    def test_send_email_called_with_org_email(self, db_app, client, monkeypatch):
+        """send_email must be called with the org's email address."""
+        from project.extensions import db
+
+        sent_to = []
+
+        def fake_send_email(to, subject, html):
+            sent_to.append(to)
+            return True
+
+        import project.routes.claim as claim_mod
+
+        monkeypatch.setattr(claim_mod, "send_email", fake_send_email)
+
+        with db_app.app_context():
+            user = _make_user(db, "org-claimant2@example.com")
+            org = _make_org(db, slug="gamma-vc", email="info@gamma.vc")
+            db.session.commit()
+            user_id = user.id
+            slug = org.slug
+
+        _login(client, user_id)
+        client.post(
+            f"/firm/{slug}/claim/email",
+            json={},
+            follow_redirects=False,
+        )
+
+        assert sent_to == ["info@gamma.vc"], f"send_email should have been called with 'info@gamma.vc', got {sent_to}"
+
+
+# ---------------------------------------------------------------------------
+# Test 9: Organization verify POST binds organization.user_id
+# ---------------------------------------------------------------------------
+
+
+class TestOrgVerificationPostSuccess:
+    """POST /firm/<slug>/claim/email/verify with a valid, fresh token for an org."""
+
+    def test_org_user_id_bound_on_success(self, db_app, client, monkeypatch):
+        """organization.user_id must equal current_user.id after successful verification."""
+        import project.routes.claim as claim_mod
+        from project.extensions import db
+        from project.models import ClaimVerification
+        from project.models.entity import Organization
+        from project.utils.enums import EntityType
+
+        monkeypatch.setattr(claim_mod, "send_email", lambda *a, **kw: True)
+
+        with db_app.app_context():
+            user = _make_user(db, "org-verifier@example.com")
+            org = _make_org(db, slug="delta-vc", email="info@delta.vc")
+            db.session.flush()
+
+            verification = ClaimVerification(
+                user_id=user.id,
+                entity_type=EntityType.ORG,
+                entity_id=org.id,
+            )
+            db.session.add(verification)
+            db.session.commit()
+            user_id = user.id
+            slug = org.slug
+            token = verification.token
+
+        _login(client, user_id)
+        client.post(
+            f"/firm/{slug}/claim/email/verify",
+            json={"code": token},
+            follow_redirects=False,
+        )
+
+        # Re-fetch from DB to confirm the bind persisted
+        with db_app.app_context():
+            fetched_org = db.session.scalar(db.select(Organization).where(Organization.slug == slug))
+            assert fetched_org is not None
+            assert fetched_org.user_id == user_id, f"Expected org.user_id={user_id}, got {fetched_org.user_id}"
+
+
+# ---------------------------------------------------------------------------
+# Test 10: "Claim this profile" CTA on UNCLAIMED person profile
+# ---------------------------------------------------------------------------
+
+
+class TestClaimCtaOnPersonProfile:
+    """GET /investors/<slug> — CTA renders on unclaimed, absent on claimed."""
+
+    def test_cta_present_on_unclaimed_person(self, db_app, client):
+        """The 'Claim this profile' CTA string must appear on an unclaimed person profile."""
+        from project.extensions import db
+
+        with db_app.app_context():
+            _make_person(db, slug="unclaimed-person", email="u@example.com")
+            db.session.commit()
+
+        resp = client.get("/investors/unclaimed-person", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Claim this profile" in resp.data, "Expected 'Claim this profile' CTA on unclaimed person profile"
+
+    def test_cta_absent_and_badge_present_on_claimed_person(self, db_app, client):
+        """When person.user_id is set, the CTA must be absent and the verified badge must be present."""
+        from project.extensions import db
+
+        with db_app.app_context():
+            owner = _make_user(db, "owner-person@example.com")
+            db.session.flush()
+            _make_person(db, slug="claimed-person", email="cp@example.com", user_id=owner.id)
+            db.session.commit()
+
+        resp = client.get("/investors/claimed-person", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Claim this profile" not in resp.data, "CTA must NOT appear on a claimed person profile"
+        assert b"Verified" in resp.data or b"Claimed" in resp.data, (
+            "Verified badge must appear on a claimed person profile"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Test 11: "Claim this profile" CTA on UNCLAIMED org profile
+# ---------------------------------------------------------------------------
+
+
+class TestClaimCtaOnOrgProfile:
+    """GET /firms/<slug> — CTA renders on unclaimed, absent on claimed."""
+
+    def test_cta_present_on_unclaimed_org(self, db_app, client):
+        """The 'Claim this profile' CTA string must appear on an unclaimed org profile."""
+        from project.extensions import db
+
+        with db_app.app_context():
+            _make_org(db, slug="unclaimed-org", email="org@example.com")
+            db.session.commit()
+
+        resp = client.get("/firms/unclaimed-org", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Claim this profile" in resp.data, "Expected 'Claim this profile' CTA on unclaimed org profile"
+
+    def test_cta_absent_and_badge_present_on_claimed_org(self, db_app, client):
+        """When org.user_id is set, the CTA must be absent and the verified badge must be present."""
+        from project.extensions import db
+
+        with db_app.app_context():
+            owner = _make_user(db, "owner-org@example.com")
+            db.session.flush()
+            _make_org(db, slug="claimed-org", email="co@example.com", user_id=owner.id)
+            db.session.commit()
+
+        resp = client.get("/firms/claimed-org", follow_redirects=True)
+        assert resp.status_code == 200
+        assert b"Claim this profile" not in resp.data, "CTA must NOT appear on a claimed org profile"
+        assert b"Verified" in resp.data or b"Claimed" in resp.data, (
+            "Verified badge must appear on a claimed org profile"
+        )

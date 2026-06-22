@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     cap_site_key: str | None = Field(default=None, alias="_CAP_SITE_KEY")
     cap_secret: str | None = Field(default=None, alias="_CAP_SECRET")
 
+    # Paddle billing (all optional — gates payment UI vs "coming soon")
+    paddle_client_token: str | None = Field(default=None, alias="_PADDLE_CLIENT_TOKEN")
+    paddle_price_id_monthly: str | None = Field(default=None, alias="_PADDLE_PRICE_ID_MONTHLY")
+    paddle_price_id_lifetime: str | None = Field(default=None, alias="_PADDLE_PRICE_ID_LIFETIME")
+
     @property
     def is_testing(self) -> bool:
         return self.env is Environment.TESTING
@@ -69,6 +74,11 @@ class Settings(BaseSettings):
     def cap_is_configured(self) -> bool:
         """True when the Cap endpoint and secret are both present."""
         return bool(self.cap_api_endpoint and self.cap_secret)
+
+    @property
+    def paddle_is_configured(self) -> bool:
+        """True when Paddle client token and at least one price ID are present."""
+        return bool(self.paddle_client_token and (self.paddle_price_id_monthly or self.paddle_price_id_lifetime))
 
 
 def get_settings() -> Settings:

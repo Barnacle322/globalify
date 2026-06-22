@@ -92,6 +92,10 @@ def create_app():
             "cap_is_configured": cfg.cap_is_configured,
             "cap_site_key": cfg.cap_site_key,
             "cap_api_endpoint": cfg.cap_api_endpoint,
+            "paddle_is_configured": cfg.paddle_is_configured,
+            "paddle_client_token": cfg.paddle_client_token if cfg.paddle_is_configured else None,
+            "paddle_price_id_monthly": cfg.paddle_price_id_monthly if cfg.paddle_is_configured else None,
+            "paddle_price_id_lifetime": cfg.paddle_price_id_lifetime if cfg.paddle_is_configured else None,
         }
 
     app.register_error_handler(400, bad_request)

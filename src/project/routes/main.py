@@ -410,6 +410,16 @@ def health():
     return jsonify({"status": "ok"})
 
 
+@main.get("/pricing")
+def pricing():
+    return render_template(
+        "pricing.html",
+        page_title="Pro — Globalify",
+        meta_description="Upgrade to Globalify Pro for full contact info, no ads, advanced filters, saved searches, email alerts, and CSV export.",
+        canonical="https://globalify.xyz/pricing",
+    )
+
+
 @main.errorhandler(400)
 def bad_request(e):
     return render_template("errors/400.html"), 400

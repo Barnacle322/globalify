@@ -526,7 +526,7 @@ def _render_person_profile(person: Person):
         person.about[:140] if person.about else f"{full_name} investor profile on Globalify"
     )
 
-    viewer_is_pro = False
+    viewer_is_pro = current_user.is_authenticated and current_user.is_pro
 
     is_bookmarked = False
     if current_user.is_authenticated:
@@ -587,7 +587,7 @@ def _render_org_profile(org: Organization):
 
     meta_desc = org.about[:140] if org.about else f"{org.name} investment firm profile on Globalify"
 
-    viewer_is_pro = False
+    viewer_is_pro = current_user.is_authenticated and current_user.is_pro
 
     is_bookmarked = False
     if current_user.is_authenticated:

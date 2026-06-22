@@ -99,6 +99,17 @@ class User(UserMixin, MappedAsDataclass, db.Model, unsafe_hash=True):
         )
         db.session.commit()
 
+    @property
+    def is_pro(self) -> bool:
+        if self.user_payment is None:
+            return False
+        if not self.user_payment.is_pro:
+            return False
+        expires = self.user_payment.pro_expires_at
+        if expires is None:
+            return True
+        return expires > datetime.datetime.utcnow()
+
 
 class UserInfo(MappedAsDataclass, db.Model, unsafe_hash=True):
     user: Mapped[User] = relationship(User, back_populates="user_info", uselist=False)
@@ -226,6 +237,21 @@ class UserPayment(MappedAsDataclass, db.Model, unsafe_hash=True):
     expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     tier: Mapped[Tier] = mapped_column(SQLEnum(Tier), nullable=False, default=Tier.FREE)
+    is_pro: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=text("false"))
+    pro_source: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    pro_expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime, nullable=True, default=None)
+    paddle_customer_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+    paddle_subscription_id: Mapped[str | None] = mapped_column(String, nullable=True, default=None)
+
+    def grant_pro(self, source: str, expires_at: datetime.datetime | None = None) -> None:
+        self.is_pro = True
+        self.pro_source = source
+        self.pro_expires_at = expires_at
+        db.session.commit()
+
+    def revoke_pro(self) -> None:
+        self.is_pro = False
+        db.session.commit()
 
     @property
     def created_epoch(self) -> datetime.datetime | None:

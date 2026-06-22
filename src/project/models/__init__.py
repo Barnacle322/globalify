@@ -1,4 +1,16 @@
 from .claim import ClaimRequest, ClaimVerification
+from .entity import (
+    Affiliation,
+    EntityBookmark,
+    EntityGeography,
+    EntityIndustry,
+    EntityNotable,
+    EntityStage,
+    Geography,
+    InvestorProfile,
+    Organization,
+    Person,
+)
 from .helpers import Country, Industry, Round
 from .investor import (
     InvestmentFirm,
@@ -37,4 +49,15 @@ __all__ = [
     "InvestorBackup",
     "InvestorOriginPoint",
     "SearchHistory",
+    # Phase 1b — new entity model layer
+    "Person",
+    "Organization",
+    "Affiliation",
+    "InvestorProfile",
+    "Geography",
+    "EntityIndustry",
+    "EntityStage",
+    "EntityGeography",
+    "EntityNotable",
+    "EntityBookmark",
 ]

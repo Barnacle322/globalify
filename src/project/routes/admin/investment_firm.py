@@ -116,7 +116,7 @@ def update_investment_firm(id):
             investment_firm.website = website_url
         except Exception as e:
             status = Status(StatusType.ERROR, str(e)).get_status()
-            return redirect(url_for("admin.company.update_company_view", id=id, _external=False, **status))
+            return redirect(url_for("admin.investment_firm.update_investment_firm_view", id=id, _external=False, **status))
     else:
         investment_firm.website = None
 

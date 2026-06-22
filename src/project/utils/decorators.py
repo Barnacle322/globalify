@@ -23,13 +23,11 @@ def admin_only(func):
 def check_user_info_complete(func):
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        next_url = request.args.get("next")
+        # onboarding flow removed in the pivot; info-completeness no longer gates access
         if not isinstance(current_user, User):
             return redirect(url_for("auth.login"))
         if not current_user.is_authenticated:
             return redirect(url_for("auth.login"))
-        elif not current_user.user_info.is_complete:
-            return redirect(url_for("onboarding.index", next=next_url))
         return func(*args, **kwargs)
 
     return decorated_function

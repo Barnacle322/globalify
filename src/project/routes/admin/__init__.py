@@ -128,7 +128,7 @@ def create_notable_investment():
 
     if not name:
         status = Status(StatusType.ERROR, "Name and description are required").get_status()
-        return redirect(url_for("admin.investment_firm_view", _external=True, **status))
+        return redirect(url_for("admin.investment_firm.index", _external=True, **status))
 
     notable_investment = NotableInvestment(name=name)
     db.session.add(notable_investment)

@@ -88,7 +88,7 @@ def security():
 @check_verification
 def change_personal_info():
     if not isinstance(current_user, User):
-        return redirect(url_for("main.login"))
+        return redirect(url_for("auth.login"))
 
     user_info = current_user.user_info
 
@@ -188,7 +188,7 @@ def change_personal_info():
 @check_verification
 def delete_account():
     if not isinstance(current_user, User):
-        return redirect(url_for("main.login"))
+        return redirect(url_for("auth.login"))
 
     if request.method == "POST":
         # NOTE: Decorators hold db session open
@@ -409,7 +409,7 @@ def edit_investor():
 @check_verification
 def investor_point_origin_data():
     if not isinstance(current_user, User):
-        return redirect(url_for("main.login"))
+        return redirect(url_for("auth.login"))
 
     investor = Investor.get_by_user_id(current_user.id)
     if not investor:
@@ -451,7 +451,7 @@ def investor_point_origin_data():
 @check_verification
 def restore_investor_data():
     if not isinstance(current_user, User):
-        return redirect(url_for("main.login"))
+        return redirect(url_for("auth.login"))
 
     investor = current_user.investor
     if not investor:

@@ -326,7 +326,7 @@ def toggle_bookmark_investment_firm(firm_id):
 def investment_firm_slug(slug):
     investment_firm = InvestmentFirm.get_by_slug(slug)
     if not investment_firm:
-        return redirect(url_for("search.investment_firm_search"))
+        return redirect(url_for("search.investor_search"))
 
     description = ""
     if investment_firm.about:

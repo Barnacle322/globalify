@@ -33,3 +33,17 @@ def test_db_metadata_creates_all_tables(app):
 
     with app.app_context():
         db.create_all()  # raises NoReferencedTableError if any FK points at a deleted table
+
+
+def test_no_url_for_to_unregistered_endpoints(app):
+    import re
+    from pathlib import Path
+
+    registered = {rule.endpoint for rule in app.url_map.iter_rules()}
+    pattern = re.compile(r'url_for\(\s*["\']([a-zA-Z_][\w.]*)["\']')
+    offenders = []
+    for py in Path("src/project").rglob("*.py"):
+        for endpoint in pattern.findall(py.read_text()):
+            if endpoint not in registered:
+                offenders.append(f"{py}: {endpoint}")
+    assert not offenders, "url_for to unregistered endpoints:\n" + "\n".join(offenders)

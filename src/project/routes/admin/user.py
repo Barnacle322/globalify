@@ -175,7 +175,7 @@ def update_user(id):
         except Exception as e:
             print(e)
             status = Status(StatusType.ERROR, PICTURE_NOT_LOADED).get_status()
-            return redirect(url_for("admin.user_info.update_user_info_view", _external=False, **status))
+            return redirect(url_for("admin.user.update_user_view", id=id, _external=False, **status))
 
     user.email = form_data.get("email", user.email).strip()
     user.is_verified = form_data.get("is_verified", user.is_verified)

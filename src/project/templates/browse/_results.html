@@ -4,6 +4,14 @@
   Context variables match browse/list.html.
 #}
 <div id="results">
+    <p class="mb-4 text-sm text-gray-500" id="results-count">
+        {% if found > 0 %}
+            {{ found }} result{{ 's' if found != 1 else '' }} found
+            {% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+        {% else %}
+            No results found{% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+        {% endif %}
+    </p>
     {% if entities %}
     <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {% for entity in entities %}

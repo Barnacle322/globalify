@@ -104,6 +104,12 @@ def investors():
     pagination = generate_pagination(result_page, total_pages)
     entities = _hits_to_entities(result.get("hits", []))
 
+    if current_user.is_authenticated:
+        all_bms = EntityBookmark.get_by_user_id(current_user.id)
+        bookmark_ids = {bm.entity_id for bm in all_bms if bm.entity_type == EntityType.PERSON}
+    else:
+        bookmark_ids = set()
+
     template = "browse/_results.html" if request.headers.get("HX-Request") else "browse/list.html"
     return render_template(
         template,
@@ -121,6 +127,7 @@ def investors():
         total_pages=total_pages,
         pagination=pagination,
         query=filters["query"] if filters["query"] != "*" else "",
+        bookmark_ids=bookmark_ids,
     )
 
 
@@ -155,6 +162,12 @@ def firms():
     pagination = generate_pagination(result_page, total_pages)
     entities = _hits_to_entities(result.get("hits", []))
 
+    if current_user.is_authenticated:
+        all_bms = EntityBookmark.get_by_user_id(current_user.id)
+        bookmark_ids = {bm.entity_id for bm in all_bms if bm.entity_type == EntityType.ORG}
+    else:
+        bookmark_ids = set()
+
     template = "browse/_results.html" if request.headers.get("HX-Request") else "browse/list.html"
     return render_template(
         template,
@@ -171,6 +184,7 @@ def firms():
         total_pages=total_pages,
         pagination=pagination,
         query=filters["query"] if filters["query"] != "*" else "",
+        bookmark_ids=bookmark_ids,
     )
 
 
@@ -338,6 +352,12 @@ def _render_facet_page(
     pagination = generate_pagination(result_page, total_pages)
     entities = _hits_to_entities(result.get("hits", []))
 
+    if current_user.is_authenticated:
+        all_bms = EntityBookmark.get_by_user_id(current_user.id)
+        bookmark_ids = {bm.entity_id for bm in all_bms if bm.entity_type == entity_kind}
+    else:
+        bookmark_ids = set()
+
     # Robots policy
     n_facets = len(classified)
     if n_facets >= 3 or result_page > 1 or found < MIN_FACET_RESULTS:
@@ -376,6 +396,7 @@ def _render_facet_page(
         pagination=pagination,
         query="",
         breadcrumbs=breadcrumbs,
+        bookmark_ids=bookmark_ids,
     )
 
 

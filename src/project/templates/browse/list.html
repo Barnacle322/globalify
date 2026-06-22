@@ -18,14 +18,6 @@
             {% if facet_intro %}
             <p class="mt-2 text-sm text-gray-600">{{ facet_intro }}</p>
             {% endif %}
-            <p class="mt-2 text-sm text-gray-500" id="results-count">
-                {% if found > 0 %}
-                    {{ found }} result{{ 's' if found != 1 else '' }} found
-                    {% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
-                {% else %}
-                    No results found{% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
-                {% endif %}
-            </p>
         </div>
     </header>
 

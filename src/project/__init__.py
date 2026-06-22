@@ -83,7 +83,8 @@ def create_app():
 
     @app.cli.command("setup")
     def populate():
-        from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment
+        from .models import InvestmentFirm, Investor, User, UserInfo, UserPayment, entity_search
+        from .models.backfill import backfill_entities
 
         with app.app_context():
             db.drop_all()
@@ -123,13 +124,25 @@ def create_app():
 
             Investor.populate_demo()
             Investor.slugify_existing()
-            Investor.sync_search_index(recreate=True)
 
             InvestmentFirm.populate_vcsheet()
             InvestmentFirm.slugify_existing()
-            InvestmentFirm.sync_search_index(recreate=True)
+
+            backfill_entities(db.session)
+
+            entity_search.sync_search_index(recreate=True)
 
     app.cli.add_command(populate)
+
+    @app.cli.command("reindex")
+    def reindex():
+        """Non-destructive reindex: sync entities collection without dropping the DB."""
+        from .models import entity_search
+
+        with app.app_context():
+            entity_search.sync_search_index(recreate=False)
+
+    app.cli.add_command(reindex)
 
     return app
 

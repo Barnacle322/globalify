@@ -12,6 +12,7 @@ from ...models import (
     NotableInvestment,
     Round,
     User,
+    entity_search,
 )
 from ...utils.decorators import admin_only
 from ...utils.enums import (
@@ -39,23 +40,21 @@ def index():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-    result = Investor.get_search(
-        query_string=search_string,
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ],
-        page=request.args.get("page", 1, type=int),
-        per_page=9,
-    )
-    investors = result.get("investors")
-    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+    page = request.args.get("page", 1, type=int)
+    try:
+        result = entity_search.get_search(
+            query=search_string or "*",
+            entity_type="person",
+            page=page,
+            per_page=9,
+        )
+    except Exception:
+        result = {"found": 0, "page": page, "hits": []}
+
+    found = result.get("found", 0)
+    pages = found // 9 + (1 if found % 9 else 0)
+    investors = [hit.get("document", {}) for hit in result.get("hits", [])]
+    pagination = generate_pagination(int(result.get("page", page)), max(pages, 1))
 
     return render_template(
         "admin/investors.html",
@@ -77,25 +76,21 @@ def approve_investors():
         msg = query.get("msg")
 
     search_string = request.args.get("search", "")
-    result = Investor.get_search(
-        query_string=search_string,
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ],
-        page=request.args.get("page", 1, type=int),
-        per_page=9,
-        is_approved=False,
-    )
+    page = request.args.get("page", 1, type=int)
+    try:
+        result = entity_search.get_search(
+            query=search_string or "*",
+            entity_type="person",
+            page=page,
+            per_page=9,
+        )
+    except Exception:
+        result = {"found": 0, "page": page, "hits": []}
 
-    investors = result.get("investors")
-    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+    found = result.get("found", 0)
+    pages = found // 9 + (1 if found % 9 else 0)
+    investors = [hit.get("document", {}) for hit in result.get("hits", [])]
+    pagination = generate_pagination(int(result.get("page", page)), max(pages, 1))
 
     return render_template(
         "admin/approve_investors.html",

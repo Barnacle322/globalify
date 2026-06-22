@@ -21,6 +21,7 @@ from ..models import (
     User,
     UserInfo,
     UserPayment,
+    entity_search,
 )
 from ..models.entity import EntityBookmark
 from ..schemas.investor import (
@@ -162,14 +163,20 @@ def check_investor():
     if not user_info:
         return jsonify({"status": "error", "message": "User Info not found."}), 404
 
-    result = Investor.get_search(
-        query_string=user_info.full_name,
-        query_by=["name"],
-        page=1,
-        per_page=18,
-    )
+    try:
+        result = entity_search.get_search(
+            query=user_info.full_name,
+            entity_type="person",
+            per_page=18,
+        )
+    except Exception:
+        result = {"hits": []}
 
-    return jsonify({"existing_investors": result.get("investors")})
+    existing_investors = [
+        {"id": hit.get("document", {}).get("db_id"), "name": hit.get("document", {}).get("name")}
+        for hit in result.get("hits", [])
+    ]
+    return jsonify({"existing_investors": existing_investors})
 
 
 @main.post("/investor/<int:investor_id>/bookmark")

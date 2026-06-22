@@ -10,12 +10,11 @@ from sqlalchemy.exc import IntegrityError
 
 from ..extensions import db
 from ..models import (
-    Country,
+    Geography,
     Industry,
-    InvestmentFirm,
-    Investor,
     Round,
     SearchHistory,
+    entity_search,
 )
 from ..schemas.user import SearchHistorySchema
 from ..utils.decorators import (
@@ -33,56 +32,68 @@ search = Blueprint("search", __name__)
 @login_required
 @check_verification
 def search_investors_onboarding(search):
-    result = Investor.get_search(
-        query_string=search,
-        query_by=["name"],
-        page=1,
-        per_page=18,
-    )
+    try:
+        result = entity_search.get_search(
+            query=search,
+            entity_type="person",
+            per_page=18,
+        )
+    except Exception:
+        result = {"hits": []}
 
-    return jsonify({"investors": result.get("investors")})
+    entities = [
+        {
+            "id": hit.get("document", {}).get("db_id"),
+            "name": hit.get("document", {}).get("name"),
+        }
+        for hit in result.get("hits", [])
+    ]
+    return jsonify({"investors": entities})
 
 
 @search.get("/search/investment-firms/<search>")
 @login_required
 @check_verification
 def search_investment_firms_onboarding(search):
-    result = InvestmentFirm.get_search(
-        query_string=search,
-        query_by=["name"],
-        page=1,
-        per_page=18,
-    )
+    try:
+        result = entity_search.get_search(
+            query=search,
+            entity_type="org",
+            per_page=18,
+        )
+    except Exception:
+        result = {"hits": []}
 
-    return jsonify({"investors": result.get("investment_firms")})
+    entities = [
+        {
+            "id": hit.get("document", {}).get("db_id"),
+            "name": hit.get("document", {}).get("name"),
+        }
+        for hit in result.get("hits", [])
+    ]
+    return jsonify({"investors": entities})
 
 
 @search.get("/search/<search_input>")
 @login_required
 @check_verification
 def search_entities(search_input):
-    # Search investors
-    investor_result = Investor.get_search(
-        query_string=search_input,
-        query_by=["name"],
-        page=1,
-        per_page=18,
-    )
-    investors = investor_result.get("investors", [])
-
-    # Search investment firms
-    investment_firm_result = InvestmentFirm.get_search(
-        query_string=search_input,
-        query_by=["name"],
-        page=1,
-        per_page=18,
-    )
-    investment_firms = investment_firm_result.get("investment_firms", [])
+    try:
+        result = entity_search.get_search(
+            query=search_input,
+            per_page=18,
+        )
+    except Exception:
+        result = {"hits": []}
 
     combined_results = [
-        {"id": investor.get("id"), "name": investor.get("name"), "type": "investor"} for investor in investors
-    ] + [{"id": firm.get("id"), "name": firm.get("name"), "type": "investment_firm"} for firm in investment_firms]
-
+        {
+            "id": hit.get("document", {}).get("db_id"),
+            "name": hit.get("document", {}).get("name"),
+            "type": hit.get("document", {}).get("entity_type"),
+        }
+        for hit in result.get("hits", [])
+    ]
     return jsonify({"results": combined_results})
 
 
@@ -96,52 +107,63 @@ def investor_search():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
 
-    rounds = []
+    stages = []
     for round_name in request.args.getlist("round"):
-        if round_object := Round.get_by_name(round_name):
-            rounds.append(round_object.name)
+        if Round.get_by_name(round_name):
+            stages.append(round_name)
 
     industries = []
     for industry_name in request.args.getlist("industry"):
-        if industry_object := Industry.get_by_name(industry_name):
-            industries.append(industry_object.name)
+        if Industry.get_by_name(industry_name):
+            industries.append(industry_name)
 
-    countries = []
-    for country_name in request.args.getlist("country"):
-        if country_object := Country.get_by_name(country_name):
-            countries.append(country_object.name)
+    geo_slugs = []
+    for geo_slug in request.args.getlist("country"):
+        geo_slugs.append(geo_slug)
 
-    result = Investor.get_search(
-        query_string=search_string,
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-            "firm_name",
-            "position",
-        ],
-        sort_by=request.args.get("sort_field", "db_id"),
-        sort_desc=request.args.get("descending", False, type=bool),
-        rounds=rounds,
-        industries=industries,
-        rounds_exclusive=request.args.get("rounds_exclusive", False, type=bool),
-        industries_exclusive=request.args.get("industries_exclusive", False, type=bool),
-        min_investment=request.args.get("min_investment", type=int),
-        max_investment=request.args.get("max_investment", type=int),
-        page=page,
-        per_page=18,
-        countries=countries,
-        is_public=True,
-        is_approved=True,
-    )
+    try:
+        result = entity_search.get_search(
+            query=search_string or "*",
+            entity_type="person",
+            industries=industries or None,
+            stages=stages or None,
+            geographies=geo_slugs or None,
+            check_size_min=request.args.get("min_investment", type=int),
+            check_size_max=request.args.get("max_investment", type=int),
+            sort_by=request.args.get("sort_field"),
+            sort_desc=request.args.get("descending", False, type=bool),
+            page=page,
+            per_page=18,
+        )
+    except Exception:
+        result = {"found": 0, "page": page, "hits": [], "pages": 1}
 
-    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+    found = result.get("found", 0)
+    result_page = int(result.get("page", page))
+    per_page = 18
+    pages = found // per_page + (1 if found % per_page else 0)
+    pagination = generate_pagination(result_page, max(pages, 1))
 
-    if search_string != "" and current_user.is_authenticated:
+    investors = [
+        {
+            "id": hit.get("document", {}).get("db_id"),
+            "name": hit.get("document", {}).get("name"),
+            "slug": hit.get("document", {}).get("slug"),
+            "about": hit.get("document", {}).get("about"),
+            "headline": hit.get("document", {}).get("headline"),
+            "org_name": hit.get("document", {}).get("org_name"),
+            "industries": hit.get("document", {}).get("industries", []),
+            "stages": hit.get("document", {}).get("stages", []),
+            "geographies": hit.get("document", {}).get("geographies", []),
+            "check_size_min": hit.get("document", {}).get("check_size_min"),
+            "check_size_max": hit.get("document", {}).get("check_size_max"),
+            "n_investments": hit.get("document", {}).get("n_investments"),
+            "n_exits": hit.get("document", {}).get("n_exits"),
+        }
+        for hit in result.get("hits", [])
+    ]
+
+    if search_string and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTOR
@@ -156,11 +178,11 @@ def investor_search():
                     "user_id": current_user.id,
                     "page": page,
                     "filters": {
-                        "rounds": rounds,
+                        "stages": stages,
                         "industries": industries,
-                        "countries": countries,
+                        "geographies": geo_slugs,
                     },
-                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "sort_field": request.args.get("sort_field"),
                     "descending": request.args.get("descending", False, type=bool),
                 },
                 distinct_id=current_user.id,
@@ -169,21 +191,23 @@ def investor_search():
         except IntegrityError:
             db.session.rollback()
 
+    geographies = db.session.scalars(db.select(Geography)).all()
+
     return render_template(
         "search.html",
-        investors=result.get("investors"),
+        investors=investors,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
             "n_exits": "Number of Exits",
-            "min_investment": "Minimum Investment",
-            "max_investment": "Maximum Investment",
+            "check_size_min": "Minimum Investment",
+            "check_size_max": "Maximum Investment",
         },
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
-        countries=Country.get_all(),
+        geographies=geographies,
         user=current_user if current_user.is_authenticated else None,
         type=SearchHistoryType.INVESTOR.value.lower(),
     )
@@ -196,48 +220,62 @@ def search_investment_firms():
     search_string = request.args.get("search", "").strip()
     page = request.args.get("page", 1, type=int)
 
-    rounds = []
+    stages = []
     for round_name in request.args.getlist("round"):
-        if round_object := Round.get_by_name(round_name):
-            rounds.append(round_object.name)
+        if Round.get_by_name(round_name):
+            stages.append(round_name)
 
     industries = []
     for industry_name in request.args.getlist("industry"):
-        if industry_object := Industry.get_by_name(industry_name):
-            industries.append(industry_object.name)
+        if Industry.get_by_name(industry_name):
+            industries.append(industry_name)
 
-    countries = []
-    for country_name in request.args.getlist("country"):
-        if country_object := Country.get_by_name(country_name):
-            countries.append(country_object.name)
+    geo_slugs = []
+    for geo_slug in request.args.getlist("country"):
+        geo_slugs.append(geo_slug)
 
-    result = InvestmentFirm.get_search(
-        query_string=search_string,
-        query_by=[
-            "location",
-            "country",
-            "rounds",
-            "industries",
-            "embedding",
-            "notable_investments",
-            "name",
-        ],
-        sort_by=request.args.get("sort_field", "db_id"),
-        sort_desc=request.args.get("descending", False, type=bool),
-        rounds=rounds,
-        industries=industries,
-        rounds_exclusive=request.args.get("rounds_exclusive", False, type=bool),
-        industries_exclusive=request.args.get("industries_exclusive", False, type=bool),
-        min_investment=request.args.get("min_investment", type=int),
-        max_investment=request.args.get("max_investment", type=int),
-        page=page,
-        per_page=18,
-        countries=countries,
-        is_public=True,
-    )
-    pagination = generate_pagination(int(result.get("page", 1)), int(result.get("pages", 1)))
+    try:
+        result = entity_search.get_search(
+            query=search_string or "*",
+            entity_type="org",
+            industries=industries or None,
+            stages=stages or None,
+            geographies=geo_slugs or None,
+            check_size_min=request.args.get("min_investment", type=int),
+            check_size_max=request.args.get("max_investment", type=int),
+            sort_by=request.args.get("sort_field"),
+            sort_desc=request.args.get("descending", False, type=bool),
+            page=page,
+            per_page=18,
+        )
+    except Exception:
+        result = {"found": 0, "page": page, "hits": [], "pages": 1}
 
-    if search_string != "" and current_user.is_authenticated:
+    found = result.get("found", 0)
+    result_page = int(result.get("page", page))
+    per_page = 18
+    pages = found // per_page + (1 if found % per_page else 0)
+    pagination = generate_pagination(result_page, max(pages, 1))
+
+    investment_firms = [
+        {
+            "id": hit.get("document", {}).get("db_id"),
+            "name": hit.get("document", {}).get("name"),
+            "slug": hit.get("document", {}).get("slug"),
+            "about": hit.get("document", {}).get("about"),
+            "industries": hit.get("document", {}).get("industries", []),
+            "stages": hit.get("document", {}).get("stages", []),
+            "geographies": hit.get("document", {}).get("geographies", []),
+            "check_size_min": hit.get("document", {}).get("check_size_min"),
+            "check_size_max": hit.get("document", {}).get("check_size_max"),
+            "n_investments": hit.get("document", {}).get("n_investments"),
+            "n_exits": hit.get("document", {}).get("n_exits"),
+            "person_names": hit.get("document", {}).get("person_names", []),
+        }
+        for hit in result.get("hits", [])
+    ]
+
+    if search_string and current_user.is_authenticated:
         try:
             new_search_history = SearchHistory(
                 user_id=current_user.id, query=search_string, type=SearchHistoryType.INVESTMENT_FIRM
@@ -252,11 +290,11 @@ def search_investment_firms():
                     "user_id": current_user.id,
                     "page": page,
                     "filters": {
-                        "rounds": rounds,
+                        "stages": stages,
                         "industries": industries,
-                        "countries": countries,
+                        "geographies": geo_slugs,
                     },
-                    "sort_field": request.args.get("sort_field", "db_id"),
+                    "sort_field": request.args.get("sort_field"),
                     "descending": request.args.get("descending", False, type=bool),
                 },
                 distinct_id=current_user.id,
@@ -265,22 +303,24 @@ def search_investment_firms():
         except IntegrityError:
             db.session.rollback()
 
+    geographies = db.session.scalars(db.select(Geography)).all()
+
     return render_template(
         "search_investment_firms.html",
-        investment_firms=result.get("investment_firms"),
+        investment_firms=investment_firms,
         query=search_string,
         fields={
             "n_investments": "Number of Investments",
             "n_exits": "Number of Exits",
-            "min_investment": "Minimum Investment",
-            "max_investment": "Maximum Investment",
+            "check_size_min": "Minimum Investment",
+            "check_size_max": "Maximum Investment",
             "n_employees": "Number of Employees",
         },
         pagination=pagination,
         total_pages=len(pagination.get("pages", [])),
         industry_list=Industry.get_all(),
         round_list=Round.get_all(),
-        countries=Country.get_all(),
+        geographies=geographies,
         type=SearchHistoryType.INVESTMENT_FIRM.value.lower().replace("_", ""),
         user=current_user if current_user.is_authenticated else None,
     )

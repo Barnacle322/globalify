@@ -113,6 +113,7 @@ class TestGetSearchHybrid:
         class _FakeDocuments:
             def search(self, params):
                 captured.update(params)
+                captured["__via__"] = "documents_search"
                 return {"found": 0, "page": 1, "hits": []}
 
         class _FakeCollection:
@@ -122,8 +123,17 @@ class TestGetSearchHybrid:
             def __getitem__(self, name):
                 return _FakeCollection()
 
+        class _FakeMultiSearch:
+            def perform(self, search_requests, common_params):
+                params = dict(search_requests["searches"][0])
+                params.pop("collection", None)
+                captured.update(params)
+                captured["__via__"] = "multi_search"
+                return {"results": [{"found": 0, "page": 1, "hits": []}]}
+
         class _FakeClient:
             collections = _FakeCollections()
+            multi_search = _FakeMultiSearch()
 
         monkeypatch.setattr(es_mod, "client", _FakeClient(), raising=False)
 
@@ -164,6 +174,13 @@ class TestGetSearchHybrid:
         params, _ = self._run_get_search(app_ctx, monkeypatch)
         query_by = params.get("query_by", "")
         assert "embedding" not in query_by, f"'embedding' should not be in query_by: {query_by}"
+
+    def test_vector_query_routes_via_multi_search(self, app_ctx, monkeypatch):
+        """A vector_query must be sent via multi_search (POST body), NOT documents.search
+        (GET): a full embedding vector exceeds Typesense's 4000-char GET URL limit and 400s.
+        Regression test for that bug (found in live verification)."""
+        params, _ = self._run_get_search(app_ctx, monkeypatch)
+        assert params.get("__via__") == "multi_search", "vector_query must route via multi_search (POST)"
 
     def test_wildcard_query_skips_vector(self, app_ctx, monkeypatch):
         """A wildcard '*' query must NOT produce a vector_query."""

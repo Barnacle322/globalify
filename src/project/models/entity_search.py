@@ -484,6 +484,12 @@ def get_search(
         params["filter_by"] = " && ".join(builder.filters)
 
     try:
+        if "vector_query" in params:
+            # A full embedding vector_query (e.g. 768 floats) far exceeds Typesense's
+            # 4000-char GET query-string limit, so send it via multi_search (POST body)
+            # rather than documents.search (GET).
+            result = client.multi_search.perform({"searches": [{**params, "collection": COLLECTION}]}, {})
+            return result["results"][0]
         return client.collections[COLLECTION].documents.search(params)
     except Exception:
         log.exception("Typesense search failed for collection=%s params=%s", COLLECTION, params)

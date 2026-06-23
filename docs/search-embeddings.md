@@ -70,7 +70,7 @@ used for auto-embedding: `name`, `about`, `headline`, `industries`,
 | `GEMINI_API_KEY` | _(unset)_ | Required when provider is `gemini`. |
 | `_EMBEDDING_MODEL` | `gemini-embedding-001` | Gemini model name. |
 | `_EMBEDDING_DIM` | `768` | Output vector dimensions. |
-| `_EMBEDDING_DISTANCE_THRESHOLD` | `0.30` | Cosine-distance cutoff for vector results (lower = stricter). |
+| `_EMBEDDING_DISTANCE_THRESHOLD` | `0.55` | Max cosine distance for a vector match (lower = stricter). Calibrated live against `gemini-embedding-001` (relevant matches land ~0.36–0.45); `0.30` was too strict. Tune per corpus. |
 
 ## Changing provider or dimension
 

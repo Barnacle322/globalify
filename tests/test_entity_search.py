@@ -9,7 +9,7 @@ Start Docker:
 
 Run:
     _TYPESENSE_HOST=localhost _TYPESENSE_PORT=18108 _TYPESENSE_API_KEY=xyz \\
-    _TYPESENSE_EMBEDDER=minilm uv run pytest tests/test_entity_search.py -v
+    uv run pytest tests/test_entity_search.py -v
 
 Teardown:
     docker rm -f ts-c2 && rm -rf /tmp/ts-c2
@@ -25,7 +25,6 @@ import sys
 os.environ.setdefault("_TYPESENSE_HOST", "127.0.0.1")
 os.environ.setdefault("_TYPESENSE_PORT", "8108")
 os.environ.setdefault("_TYPESENSE_API_KEY", "xyz")
-os.environ.setdefault("_TYPESENSE_EMBEDDER", "minilm")
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
 os.environ.setdefault("_DATABASE_URL", "sqlite:///test_entity_search_db.sqlite")
 

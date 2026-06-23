@@ -6,6 +6,7 @@ to insecure values. Existing leading-underscore env var names are preserved via
 field aliases.
 """
 
+import os
 from enum import StrEnum
 
 from pydantic import Field
@@ -20,7 +21,11 @@ class Environment(StrEnum):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # In testing, never read a developer's local .env: the suite supplies its own
+        # env via conftest. Reading .env breaks hermeticity — it satisfies the fail-fast
+        # SECRET_KEY check and could enable live integrations (e.g. Gemini embeddings)
+        # mid-test. Other modes read .env normally.
+        env_file=None if os.getenv("FLASK_ENV") == "testing" else ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",

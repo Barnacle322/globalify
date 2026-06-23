@@ -65,6 +65,17 @@ class Settings(BaseSettings):
         alias="_EDGAR_USER_AGENT",
     )
 
+    # Gemini embeddings (app-side; provider "none" disables, "gemini" enables)
+    gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
+    embedding_provider: str = Field(default="none", alias="_EMBEDDING_PROVIDER")
+    embedding_model: str = Field(default="gemini-embedding-001", alias="_EMBEDDING_MODEL")
+    embedding_dim: int = Field(default=768, alias="_EMBEDDING_DIM")
+
+    @property
+    def embeddings_enabled(self) -> bool:
+        """True when Gemini embeddings are fully configured."""
+        return self.embedding_provider == "gemini" and bool(self.gemini_api_key)
+
     @property
     def is_testing(self) -> bool:
         return self.env is Environment.TESTING

@@ -1,0 +1,23 @@
+# Build-context hygiene: keep the image small and never ship secrets/scratch.
+.git
+.github
+.venv
+node_modules
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.mypy_cache
+instance
+typesense-data
+*.sqlite
+.env
+.env.*
+!.env.example
+.superpowers
+.claude
+.playwright-mcp
+docs
+tests
+*.md
+!README.md

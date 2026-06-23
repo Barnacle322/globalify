@@ -1,0 +1,75 @@
+# Self-contained Globalify stack: app (granian WSGI) + Typesense + Postgres.
+#
+# Secrets (SECRET_KEY, GEMINI_API_KEY, RESEND/R2/PADDLE/CAP, …) are read from .env
+# via `env_file`. Service-to-service wiring (DB host, Typesense host, prod mode) is
+# set explicitly under each service's `environment:` so it ALWAYS overrides whatever
+# host/dev values happen to be in .env.
+#
+# Quickstart:
+#   cp .env.example .env            # fill SECRET_KEY (+ GEMINI_API_KEY for semantic search)
+#   docker compose up -d --build
+#   docker compose run --rm app uv run flask --app project setup   # create tables + seed demo + build Typesense index
+#   open http://localhost:8000
+#
+# See docs/deployment-docker-compose.md for prod notes (migrations, real data, semantic search).
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: globalify
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-globalify}
+      POSTGRES_DB: globalify
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    ports:
+      # Bound to localhost only — reachable by host tooling (psql), not the public interface.
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U globalify -d globalify"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  typesense:
+    image: typesense/typesense:30.2
+    restart: unless-stopped
+    command: ["--data-dir", "/data", "--api-key=${_TYPESENSE_API_KEY:-xyz}", "--enable-cors"]
+    volumes:
+      - typesense-data:/data
+    ports:
+      # Bound to localhost only — lets host tooling (flask reindex) reach Typesense.
+      - "127.0.0.1:8108:8108"
+    healthcheck:
+      # Typesense ships curl in its image; fall back to a TCP probe if absent.
+      test: ["CMD-SHELL", "curl -sf http://localhost:8108/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Explicit overrides — these win over .env so the deployed app is wired to the
+      # sibling services and runs in production mode regardless of local .env values.
+      FLASK_ENV: production
+      PORT: "80"
+      _DATABASE_URL: postgresql+psycopg://globalify:${POSTGRES_PASSWORD:-globalify}@db:5432/globalify
+      _TYPESENSE_HOST: typesense
+      _TYPESENSE_PORT: "8108"
+    depends_on:
+      db:
+        condition: service_healthy
+      # The app degrades gracefully when Typesense is unreachable (browse returns
+      # empty, search falls back), so `service_started` is sufficient here.
+      typesense:
+        condition: service_started
+    ports:
+      - "${APP_PORT:-8000}:80"
+
+volumes:
+  pg-data:
+  typesense-data:

@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     embedding_provider: str = Field(default="none", alias="_EMBEDDING_PROVIDER")
     embedding_model: str = Field(default="gemini-embedding-001", alias="_EMBEDDING_MODEL")
     embedding_dim: int = Field(default=768, alias="_EMBEDDING_DIM")
+    embedding_distance_threshold: float = Field(default=0.30, alias="_EMBEDDING_DISTANCE_THRESHOLD")
 
     @property
     def embeddings_enabled(self) -> bool:

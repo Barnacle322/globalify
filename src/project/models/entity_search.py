@@ -10,9 +10,10 @@ Exposes:
 from __future__ import annotations
 
 import logging
-import os
 
 from typesense.exceptions import ObjectNotFound
+
+from ..config import get_settings
 
 log = logging.getLogger(__name__)
 
@@ -24,68 +25,43 @@ COLLECTION = "entities"
 # ---------------------------------------------------------------------------
 
 
-def _build_embed_config() -> dict:
-    """Return embed config based on _TYPESENSE_EMBEDDER env var.
-
-    Default: 'minilm' -> ts/all-MiniLM-L12-v2 (no API key needed)
-    'gemini' -> google/text-embedding-004 (requires GEMINI_API_KEY)
-    """
-    embedder = os.getenv("_TYPESENSE_EMBEDDER", "minilm")
-    embed_from = ["name", "about", "headline", "industries", "geographies"]
-    if embedder == "gemini":
-        api_key = os.getenv("GEMINI_API_KEY", "")
-        return {
-            "from": embed_from,
-            "model_config": {
-                "model_name": "google/text-embedding-004",
-                "api_key": api_key,
-            },
-        }
-    # default: minilm (local, no key)
-    return {
-        "from": embed_from,
-        "model_config": {"model_name": "ts/all-MiniLM-L12-v2"},
-    }
-
-
 def _build_schema() -> dict:
     """Build the 'entities' collection schema dict."""
+    settings = get_settings()
+    fields = [
+        {"name": "id", "type": "string"},
+        {"name": "entity_type", "type": "string", "facet": True},
+        {"name": "db_id", "type": "int32", "facet": True},
+        {"name": "name", "type": "string"},
+        {"name": "slug", "type": "string", "optional": True},
+        {"name": "about", "type": "string", "optional": True},
+        {"name": "headline", "type": "string", "facet": True, "optional": True},
+        {"name": "org_name", "type": "string", "optional": True},
+        {"name": "person_names", "type": "string[]", "optional": True},
+        {"name": "website", "type": "string", "optional": True},
+        {"name": "linkedin", "type": "string", "optional": True},
+        {"name": "twitter", "type": "string", "optional": True},
+        {"name": "country_code", "type": "string", "facet": True, "optional": True},
+        {"name": "geographies", "type": "string[]", "facet": True, "optional": True},
+        {"name": "industries", "type": "string[]", "facet": True, "optional": True},
+        {"name": "stages", "type": "string[]", "facet": True, "optional": True},
+        {"name": "notable_investments", "type": "string[]", "optional": True},
+        {"name": "investor_type", "type": "string", "facet": True, "optional": True},
+        {"name": "org_type", "type": "string", "facet": True, "optional": True},
+        {"name": "lead_pref", "type": "string", "facet": True, "optional": True},
+        {"name": "accepts_cold_inbound", "type": "bool", "facet": True, "optional": True},
+        {"name": "is_active", "type": "bool", "facet": True, "optional": True},
+        {"name": "check_size_min", "type": "int32", "optional": True, "sort": True},
+        {"name": "check_size_max", "type": "int32", "optional": True, "sort": True},
+        {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
+        {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
+    ]
+    if settings.embeddings_enabled:
+        fields.append({"name": "embedding", "type": "float[]", "num_dim": settings.embedding_dim})
     return {
         "name": COLLECTION,
         "primary_key": "id",
-        "fields": [
-            {"name": "id", "type": "string"},
-            {"name": "entity_type", "type": "string", "facet": True},
-            {"name": "db_id", "type": "int32", "facet": True},
-            {"name": "name", "type": "string"},
-            {"name": "slug", "type": "string", "optional": True},
-            {"name": "about", "type": "string", "optional": True},
-            {"name": "headline", "type": "string", "facet": True, "optional": True},
-            {"name": "org_name", "type": "string", "optional": True},
-            {"name": "person_names", "type": "string[]", "optional": True},
-            {"name": "website", "type": "string", "optional": True},
-            {"name": "linkedin", "type": "string", "optional": True},
-            {"name": "twitter", "type": "string", "optional": True},
-            {"name": "country_code", "type": "string", "facet": True, "optional": True},
-            {"name": "geographies", "type": "string[]", "facet": True, "optional": True},
-            {"name": "industries", "type": "string[]", "facet": True, "optional": True},
-            {"name": "stages", "type": "string[]", "facet": True, "optional": True},
-            {"name": "notable_investments", "type": "string[]", "optional": True},
-            {"name": "investor_type", "type": "string", "facet": True, "optional": True},
-            {"name": "org_type", "type": "string", "facet": True, "optional": True},
-            {"name": "lead_pref", "type": "string", "facet": True, "optional": True},
-            {"name": "accepts_cold_inbound", "type": "bool", "facet": True, "optional": True},
-            {"name": "is_active", "type": "bool", "facet": True, "optional": True},
-            {"name": "check_size_min", "type": "int32", "optional": True, "sort": True},
-            {"name": "check_size_max", "type": "int32", "optional": True, "sort": True},
-            {"name": "n_investments", "type": "int32", "optional": True, "sort": True},
-            {"name": "n_exits", "type": "int32", "optional": True, "sort": True},
-            {
-                "name": "embedding",
-                "type": "float[]",
-                "embed": _build_embed_config(),
-            },
-        ],
+        "fields": fields,
     }
 
 
@@ -272,6 +248,44 @@ def _build_entity_doc(entity_type: object, entity: object, session: object) -> d
     return doc
 
 
+def _attach_embeddings(docs: list[dict]) -> None:
+    """Compute and attach embedding vectors to *docs* in-place.
+
+    Uses the joined text of the searchable fields (name, about, headline,
+    industries, geographies) as the embedding input — matching what the old
+    Typesense auto-embed ``embed_from`` list referenced.
+
+    When ``embed_documents`` returns None (provider disabled or API failure),
+    the docs are left as-is (keyword-only) and a warning is logged so the
+    caller can still upsert them without dropping any DB-backed document.
+    """
+    from ..utils import embeddings
+
+    texts = []
+    for doc in docs:
+        parts = [doc.get("name", "")]
+        for field in ("about", "headline"):
+            val = doc.get(field)
+            if val:
+                parts.append(val)
+        for field in ("industries", "geographies"):
+            vals = doc.get(field)
+            if vals:
+                parts.extend(vals)
+        texts.append(" ".join(parts))
+
+    vectors = embeddings.embed_documents(texts)
+    if vectors is None:
+        log.warning(
+            "embed_documents returned None for %d docs — indexing without embeddings (keyword-only fallback)",
+            len(docs),
+        )
+        return
+
+    for doc, vec in zip(docs, vectors, strict=True):
+        doc["embedding"] = vec
+
+
 def sync_search_index(recreate: bool = False) -> None:
     """Upsert all Person and Organization rows into the 'entities' Typesense collection.
 
@@ -287,6 +301,8 @@ def sync_search_index(recreate: bool = False) -> None:
         upsert_documents,
     )
     from .entity import Organization, Person
+
+    settings = get_settings()
 
     if recreate:
         try:
@@ -309,6 +325,8 @@ def sync_search_index(recreate: bool = False) -> None:
         docs: list[dict] = [_build_entity_doc(EntityType.PERSON, person, db.session) for person in persons]
 
         if docs:
+            if settings.embeddings_enabled:
+                _attach_embeddings(docs)
             upsert_documents(COLLECTION, docs)
             # Write search_index back to person rows
             for person in persons:
@@ -329,6 +347,8 @@ def sync_search_index(recreate: bool = False) -> None:
         docs = [_build_entity_doc(EntityType.ORG, org, db.session) for org in orgs]
 
         if docs:
+            if settings.embeddings_enabled:
+                _attach_embeddings(docs)
             upsert_documents(COLLECTION, docs)
             # Write search_index back to org rows
             for org in orgs:
@@ -364,7 +384,10 @@ def sync_one(entity_type: object, entity_id: int) -> None:
         log.warning("sync_one: no %s with id=%s found; skipping upsert", entity_type, entity_id)
         return
 
+    settings = get_settings()
     doc = _build_entity_doc(entity_type, entity, db.session)
+    if settings.embeddings_enabled:
+        _attach_embeddings([doc])
     upsert_documents(COLLECTION, [doc])
 
     # Write search_index back to the row
@@ -401,14 +424,15 @@ def get_search(
     Builds filters via SearchBuilder then calls the Typesense client directly
     (bypassing the FLASK_ENV=='testing' short-circuit in SearchBuilder.search()).
     """
+    from ..utils import embeddings
     from ..utils.typesense_helpers.typesense_search import SearchBuilder, client
 
     builder = (
         SearchBuilder(COLLECTION)
         .query(query)
         .query_by(
-            ["name", "about", "headline", "org_name", "person_names", "industries", "embedding"],
-            weights=[4, 2, 2, 1, 1, 1, 1],
+            ["name", "about", "headline", "org_name", "person_names", "industries"],
+            weights=[4, 2, 2, 1, 1, 1],
         )
     )
 
@@ -445,11 +469,17 @@ def get_search(
 
     # Build params and call client directly — bypasses FLASK_ENV=='testing' guard
     # in SearchBuilder.search() so Docker-backed integration tests work correctly.
+    settings = get_settings()
     params = {**builder.parameters}
     params["prefix"] = False
-    if "embedding" in params.get("query_by", ""):
-        params["vector_query"] = "embedding:([], distance_threshold:0.50)"
-        params["exclude_fields"] = "embedding"
+    if settings.embeddings_enabled and query and query != "*":
+        qvec = embeddings.embed_query(query)
+        if qvec is not None:
+            params["vector_query"] = (
+                f"embedding:([{','.join(repr(float(x)) for x in qvec)}],"
+                f" distance_threshold:{settings.embedding_distance_threshold})"
+            )
+            params["exclude_fields"] = "embedding"
     if builder.filters:
         params["filter_by"] = " && ".join(builder.filters)
 

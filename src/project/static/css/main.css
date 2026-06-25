@@ -116,7 +116,7 @@ code,
 kbd,
 samp,
 pre {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; /* 1 */
+  font-family: "Space Mono", ui-monospace, monospace; /* 1 */
   font-feature-settings: normal; /* 2 */
   font-variation-settings: normal; /* 3 */
   font-size: 1em; /* 4 */
@@ -591,10 +591,15 @@ select {
   outline: 1px solid ButtonText;
   outline: 1px auto -webkit-focus-ring-color;
 }
-    html {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji",
-            "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-    }
+  :root {
+    --brand: #0C72D3; --brand-deep: #0B5BA8; --brand-tint: #E6F0FB;
+    --green: #0E7A4F; --green-tint: #E7F2EB;
+    --paper: #FBFAF6; --panel: #F5F2E9; --surface: #FFFFFF;
+    --ink: #15120B; --soft: #544D3C; --faint: #8A8470;
+    --rule: #E6E0D2; --rule-2: #EDE8DC;
+  }
+  html { font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background: var(--paper); color: var(--ink); }
 
 *, ::before, ::after {
   --tw-border-spacing-x: 0;
@@ -1229,26 +1234,6 @@ select {
 .prose :where(.prose > :last-child):not(:where([class~="not-prose"],[class~="not-prose"] *)) {
   margin-bottom: 0;
 }
-.prose-invert {
-  --tw-prose-body: var(--tw-prose-invert-body);
-  --tw-prose-headings: var(--tw-prose-invert-headings);
-  --tw-prose-lead: var(--tw-prose-invert-lead);
-  --tw-prose-links: var(--tw-prose-invert-links);
-  --tw-prose-bold: var(--tw-prose-invert-bold);
-  --tw-prose-counters: var(--tw-prose-invert-counters);
-  --tw-prose-bullets: var(--tw-prose-invert-bullets);
-  --tw-prose-hr: var(--tw-prose-invert-hr);
-  --tw-prose-quotes: var(--tw-prose-invert-quotes);
-  --tw-prose-quote-borders: var(--tw-prose-invert-quote-borders);
-  --tw-prose-captions: var(--tw-prose-invert-captions);
-  --tw-prose-kbd: var(--tw-prose-invert-kbd);
-  --tw-prose-kbd-shadows: var(--tw-prose-invert-kbd-shadows);
-  --tw-prose-code: var(--tw-prose-invert-code);
-  --tw-prose-pre-code: var(--tw-prose-invert-pre-code);
-  --tw-prose-pre-bg: var(--tw-prose-invert-pre-bg);
-  --tw-prose-th-borders: var(--tw-prose-invert-th-borders);
-  --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
-}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -1477,9 +1462,6 @@ select {
 }
 .mb-12 {
   margin-bottom: 3rem;
-}
-.mb-16 {
-  margin-bottom: 4rem;
 }
 .mb-2 {
   margin-bottom: 0.5rem;
@@ -2572,10 +2554,6 @@ select {
   --tw-bg-opacity: 1;
   background-color: rgb(59 130 246 / var(--tw-bg-opacity));
 }
-.bg-deep-purple {
-  --tw-bg-opacity: 1;
-  background-color: rgb(35 22 69 / var(--tw-bg-opacity));
-}
 .bg-gray-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(243 244 246 / var(--tw-bg-opacity));
@@ -2712,10 +2690,6 @@ select {
   --tw-gradient-to: rgb(255 255 255 / 0) var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
-.via-deep-purple {
-  --tw-gradient-to: rgb(35 22 69 / 0)  var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), #231645 var(--tw-gradient-via-position), var(--tw-gradient-to);
-}
 .via-purple-400 {
   --tw-gradient-to: rgb(192 132 252 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), #c084fc var(--tw-gradient-via-position), var(--tw-gradient-to);
@@ -2767,6 +2741,9 @@ select {
 }
 .fill-none {
   fill: none;
+}
+.fill-rule {
+  fill: #E6E0D2;
 }
 .fill-white {
   fill: #fff;
@@ -3000,6 +2977,9 @@ select {
 }
 .text-end {
   text-align: end;
+}
+.font-poppins {
+  font-family: "Poppins", sans-serif;
 }
 .text-2xl {
   font-size: 1.5rem;
@@ -3479,6 +3459,17 @@ select {
 .font-poppins {
     font-family: Poppins;
 }
+
+/* Fraunces — display serif */
+@font-face { font-family: "Fraunces"; src: url("/static/elements/fonts/fraunces-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Fraunces"; src: url("/static/elements/fonts/fraunces-400italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Fraunces"; src: url("/static/elements/fonts/fraunces-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "Fraunces"; src: url("/static/elements/fonts/fraunces-600.woff2") format("woff2"); font-weight: 600; font-display: swap; }
+@font-face { font-family: "Fraunces"; src: url("/static/elements/fonts/fraunces-600italic.woff2") format("woff2"); font-weight: 600; font-style: italic; font-display: swap; }
+
+/* Space Mono — data/metadata */
+@font-face { font-family: "Space Mono"; src: url("/static/elements/fonts/space-mono-400.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Space Mono"; src: url("/static/elements/fonts/space-mono-700.woff2") format("woff2"); font-weight: 700; font-display: swap; }
 
 @keyframes gradient {
     0% {
@@ -4660,11 +4651,6 @@ textarea {
 
   .sm\:text-5xl {
     font-size: 3rem;
-    line-height: 1;
-  }
-
-  .sm\:text-8xl {
-    font-size: 6rem;
     line-height: 1;
   }
 

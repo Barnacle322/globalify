@@ -1,424 +1,308 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Globalify — Your Gateway to Investors{% endblock %}
-{% block meta_description %}Discover investors and venture capital firms on Globalify — the open investor directory. Find the right connections to get your startup funded.{% endblock %}
+{% block title %}The investor database for founders{% endblock %}
+{% block meta_description %}Search 12,000+ investors and venture firms by stage, sector and geography. A self-serve database. Filter, shortlist and export.{% endblock %}
 {% block canonical %}https://globalify.org/{% endblock %}
 
 {% block content %}
-<article class="fixed bottom-0 right-0 max-w-md z-50 sm:p-6 p-3 transition-all ease-in-out">
-    <div class="p-5 bg-white rounded-xl shadow-xl relative">
+
+{# ============================================================
+   Anti-scam notice (NOT marketing copy — keep restyled)
+   ============================================================ #}
+<article class="fixed bottom-0 right-0 z-50 max-w-sm p-4 sm:p-6 transition-all ease-in-out" id="antiscam-notice">
+    <div class="relative rounded-xl border border-rule bg-surface p-5 shadow-lg">
         <button
-            onclick="this.parentNode.parentNode.classList.add('opacity-0', 'pointer-events-none')"
-            class="top-3 right-3 absolute"
+            onclick="document.getElementById('antiscam-notice').classList.add('opacity-0', 'pointer-events-none')"
+            class="absolute right-3 top-3 text-faint hover:text-ink transition-colors"
+            aria-label="Dismiss"
         >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke-width="1.5"
-                stroke="currentColor"
-                class="size-5"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
         </button>
-        <h2 class="text-lg font-medium">❌ We are NOT hiring!</h2>
-        <p class="mt-2">We are NOT located in Ukraine and we are NOT recruiting anyone at the moment!</p>
-        <p class="mt-2">If you believe that you are being deceived, contact us at <a class="font-medium underline" href="mailto:info@globalify.org">info@globalify.org</a></p>
+        <h2 class="pr-6 text-sm font-semibold text-ink">We are NOT hiring</h2>
+        <p class="mt-1.5 text-xs text-soft leading-relaxed">We are not located in Ukraine and are not recruiting anyone at the moment.</p>
+        <p class="mt-1.5 text-xs text-soft">If you believe you are being deceived, contact us at <a class="font-medium text-ink underline decoration-rule hover:decoration-brand" href="mailto:info@globalify.org">info@globalify.org</a></p>
     </div>
 </article>
 
-<div class="relative mt-24 flex w-full flex-col justify-center overflow-x-hidden">
-    <section
-        class="relative mx-auto flex max-w-7xl flex-col items-center justify-center px-6 pb-5 pt-5 text-center lg:pt-24"
-    >
-        <img
-            class="pointer-events-none absolute left-1/2 top-0 -z-50 h-fit w-fit origin-top -translate-x-1/2 scale-75 transform"
-            src="/static/elements/hero-bg.svg"
-            alt=""
-        />
-
-        <span
-            class="move-up border-gray text-semibold w-fit rounded-full border border-gray-200 bg-white px-2 py-1 text-xs shadow-lg"
-            style="animation-delay: 1.2s"
-            ><span class="bg-gradient-to-r from-[#8076E7] to-[#E776C1] bg-clip-text text-transparent"
-                >Finding investors with ease</span
-            ></span
-        >
-        <h1
-            class="move-up mx-auto mb-10 mt-5 max-w-sm text-center text-4xl font-semibold tracking-tight text-slate-900 sm:max-w-lg sm:text-5xl lg:text-6xl"
-        >
-            <span class="background-animate bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-transparent"
-                >Globalify</span
-            ><br />Your Gateway to <br />
-            <div class="relative flex h-10 justify-center overflow-hidden sm:h-12 lg:h-[60px]">
-                <span class="scroll" style="animation-delay: 2s">
-                    <div>Funders</div>
-                    <div>Founders</div>
-                    <div>Partners</div>
-                    <div>Investors</div>
-                    <div>The Future</div>
-                </span>
-            </div>
-        </h1>
-        <p
-            class="move-up mx-auto mb-10 max-w-2xl text-center text-base text-slate-700 sm:text-lg"
-            style="animation-delay: 0.8s"
-        >
-            Unlock your business's potential with our extensive network of investors and partners. We're here to help
-            you secure the funding you need to take you to the next level.
-        </p>
-    </section>
-
-    <section
-        class="fade-in flex w-full flex-col items-center justify-center bg-gradient-to-b from-white to-slate-100 px-6 pb-20"
-        style="animation-delay: 1.2s"
-    >
-        <div class="w-full max-w-4xl">
-            <form
-                class="view-search relative mx-auto flex w-full gap-2 rounded-full bg-white py-4 pr-3 shadow-[rgba(13,_38,_76,_0.19)_0px_9px_20px]"
-                action="/search"
-                method="get"
-            >
-                <input
-                    type="search"
-                    id="search"
-                    name="search"
-                    class="w-full border-0 bg-transparent py-3 pl-6 pr-0 text-sm focus:ring-0"
-                    placeholder="Search"
-                    autocapitalize="off"
-                    autocorrect="off"
-                    autocomplete="off"
-                    aria-autocomplete="both"
-                    enterkeyhint="search"
-                    required
-                />
-                <button id="search-btn" type="submit">
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="size-5"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-                        />
-                    </svg>
-                </button>
-                <a href="/suggestions" class="flex flex-col items-center justify-center pr-3">
-                    <div
-                        class="size-6 animate-border bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-[length:400%_400%]"
-                        style="clip-path: url(#magic-icon)"
-                    ></div>
-                    <svg height="0" width="0">
-                        <clipPath id="magic-icon">
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z"
-                            />
-                        </clipPath>
-                    </svg>
-                </a>
-            </form>
-        </div>
-        <div id="results" class="relative mt-10 grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3"></div>
-    </section>
-
-    <section class="flex items-center justify-center gap-2.5 bg-[#1C1236] px-6 py-10 text-white">
-        <div class="fade-in flex max-w-7xl flex-col items-center justify-center" style="animation-delay: 1.2s">
-            <div class="flex flex-col items-center justify-center gap-4 md:text-center">
-                <span
-                    class="inline-flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-md shadow-white/50"
-                    ><img src="/static/elements/award.svg" alt="" />Experts</span
-                >
-                <h2 class="text-3xl font-semibold sm:text-4xl">Tailored experience for specific regions</h2>
-                <p class="text-slate-500">Experts from around the world are here to help</p>
-            </div>
-            <img class="mt-10" src="/static/elements/countries.svg" alt="" />
-        </div>
-    </section>
-
-    <section class="fade-in mx-auto mb-12 mt-20 w-full max-w-7xl px-4" style="animation-delay: 1.2s">
-        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Globalify helps bring your ideas into
-            <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">reality</span>
-        </h2>
-        <div class="mt-16 flex w-full snap-x snap-mandatory gap-4 overflow-x-auto *:snap-start">
-            <div
-                class="relative flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#01151d] p-6 sm:w-full"
-            >
-                <p class="text-xs text-gray-400">Advisory &amp; Partnership</p>
-                <span class="font-medium text-white">
-                    Helped <u><a href="https://qubic.org" target="_blank">Qubic</a></u> organize hackathons in Central
-                    Asia. Helped set up and secure new investors.
-                </span>
-                <img
-                    class="absolute -bottom-10 aspect-auto translate-x-20 scale-150 rounded-3xl"
-                    src="/static/elements/qubic-superconnect.jpg"
-                    alt=""
-                />
-                <div class="absolute bottom-4 left-4 rounded-xl bg-white p-2">
-                    <img class="size-8" src="/static/elements/logos/qubic.svg" alt="" />
-                </div>
-            </div>
-            <div
-                class="relative flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#edeff1] p-6 sm:w-full"
-            >
-                <p class="text-xs text-gray-700">Advisory &amp; Series A</p>
-                <span class="font-medium text-black">
-                    Globalify backed the vision by introducing
-                    <u><a href="https://www.climate-x.com/" target="_blank">Climate X</a></u> to Google Ventures and
-                    Blue Wire Capital.
-                </span>
-                <img
-                    class="absolute -bottom-32 aspect-auto translate-x-20 scale-150 rounded-3xl"
-                    src="/static/elements/climatex-superconnect.jpg"
-                    alt=""
-                />
-                <div class="absolute bottom-4 left-4 rounded-xl bg-black p-1">
-                    <img class="size-10" src="/static/elements/logos/climatex.png" alt="" />
-                </div>
-            </div>
-            <div
-                class="relative flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#28165c] p-6 sm:w-full"
-            >
-                <p class="text-xs text-gray-400">Seed Round</p>
-                <span class="font-medium text-white">
-                    Supported <u><a href="https://www.olivex.ai/" target="_blank">OliveX</a></u> with both existing and
-                    new strategic investors through the Web3 and Hong Kong network.
-                </span>
-                <img
-                    class="absolute -bottom-32 aspect-auto translate-x-20 scale-150 rounded-3xl"
-                    src="/static/elements/olivex-superconnect.jpeg"
-                    alt=""
-                />
-                <div class="px absolute bottom-4 left-4 rounded-xl bg-white">
-                    <img class="size-12 object-contain" src="/static/elements/logos/olivex.png" alt="" />
-                </div>
-            </div>
-            <div
-                class="relative mr-10 flex aspect-[2/3] min-w-[300px] flex-col gap-4 overflow-hidden rounded-2xl bg-[#f2f2f2] p-6 sm:mr-0 sm:w-full"
-            >
-                <p class="text-xs text-gray-700">Series C</p>
-                <span class="font-medium text-black">
-                    Together with NewChicCapital helped raise
-                    <u><a href="https://www.cambrianbio.com/" target="_blank">Cambrian</a></u>
-                    <b class="font-semibold">$60,000,000</b></span
-                >
-                <img
-                    class="absolute bottom-10 aspect-auto translate-x-20 scale-150 rounded-3xl"
-                    src="/static/elements/cambrianbiopharma-superconnect.jpg"
-                    alt=""
-                />
-                <div class="absolute bottom-4 left-4 rounded-xl bg-[#0a1b42] p-1">
-                    <img class="size-9" src="/static/elements/logos/cambrianbiopharma.png" alt="" />
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="fade-in flex items-center justify-center gap-2.5 px-6 pt-20" style="animation-delay: 1.2s">
-        <div class="flex w-full max-w-7xl flex-col">
-            <div class="flex flex-col gap-4 text-start md:text-center">
-                <span
-                    class="mx-auto flex w-fit items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-900 shadow-xl"
-                    ><img src="/static/elements/3dcube.svg" alt="" />Testimonials</span
-                >
-                <h2 class="l mt-2 text-3xl font-semibold sm:text-[40px]">
-                    Hear it from others <br />
-                    It does
-                    <span class="bg-gradient-to-r from-[#897BE6] to-[#E87BC3] bg-clip-text text-transparent">work</span>
-                </h2>
-            </div>
-            <div class="relative">
-                <div class="relative mt-20 flex w-full gap-5 overflow-hidden" id="thelist">
-                    <article
-                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
-                    >
-                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
-                            <p class="line-clamp-7">
-                                Starting my own business was awesome, but getting the funding I needed was a struggle.
-                                Globalify helped me out BIG TIME! They're a super-powered search engine that finds the
-                                right connections to get my startup, MedBrain rolling. Now things are exploding and I'm
-                                stoked!
-                            </p>
-                            <div class="mt-5 flex flex-col">
-                                <span class="font-bold">Pol Ricart</span>
-                                <span class="text-slate-400">Entrepreneur, MD</span>
-                            </div>
-                        </div>
-                    </article>
-                    <article
-                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
-                    >
-                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
-                            <p class="line-clamp-7">
-                                Using Globalify's search engine opened up many new opportunities for collaborations and
-                                generated even more interest in my crypto project. It felt like unlocking a door to a
-                                world of possibilities that I hadn't even imagined. ¡Es la caña!
-                            </p>
-                            <div class="mt-5 flex flex-col">
-                                <span class="font-bold">Alberto Fernandez</span>
-                                <span class="text-slate-400">Entrepreneur</span>
-                            </div>
-                        </div>
-                    </article>
-                    <article
-                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
-                    >
-                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
-                            <p class="line-clamp-7">
-                                Thanks to the power of Globalify's proprietary AI Search Engine, I was able to secure
-                                the funding I needed from Web2, Web3, and very famous angel investors to seed my
-                                startup. I can't recommend them enough!
-                            </p>
-                            <div class="mt-5 flex flex-col">
-                                <span class="font-bold">JL</span>
-                                <span class="text-slate-400">First Time Founder</span>
-                            </div>
-                        </div>
-                    </article>
-                    <article
-                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
-                    >
-                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
-                            <p class="line-clamp-7">
-                                Globalify helped us discover hidden gems for direct investment as well as amazing Fund
-                                Managers to co-invest with. For a select few of the Funds we met via Globalify, we
-                                became LPs after strategic intros and meetings facilitated by the platform.
-                            </p>
-                            <div class="mt-5 flex flex-col">
-                                <span class="font-bold">JM </span>
-                                <span class="text-slate-400">Chair, Single Family Office, US &amp; Asia</span>
-                            </div>
-                        </div>
-                    </article>
-                    <article
-                        class="flex min-w-full rounded-[2rem] bg-gradient-to-b from-[#EFF6FA] to-[#EEFFFB] p-6 lg:min-w-[calc(50%-10px)]"
-                    >
-                        <div class="flex flex-col justify-between rounded-3xl bg-white p-8 leading-loose">
-                            <p class="line-clamp-7">
-                                I used Globalify, a cool search engine, to find people who wanted to learn about my
-                                Canadian VR startup. Eric was super helpful and made things easier for me. Thanks to
-                                Globalify, I met great people and learned a lot more. Big shoutout to Globalify for
-                                making my dreams a bit more real!
-                            </p>
-                            <div class="mt-5 flex flex-col">
-                                <span class="font-bold">Miji Lee </span>
-                                <span class="text-slate-400">First Time Founder</span>
-                            </div>
-                        </div>
-                    </article>
-                </div>
-                <button
-                    class="absolute -left-5 top-1/2 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
-                    type="button"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="mx-auto size-6"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                    </svg>
-                </button>
-                <button
-                    class="absolute -right-5 top-1/2 size-16 rounded-full border bg-white transition-colors ease-in-out hover:bg-neutral-50"
-                    type="button"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke-width="1.5"
-                        stroke="currentColor"
-                        class="mx-auto size-6"
-                    >
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <section class="fade-in mx-auto max-w-7xl px-6 py-16" style="animation-delay: 1.2s">
-        <div class="mx-auto lg:mx-0">
-            <h2 class="mx-auto text-center text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-                From the blog
-            </h2>
-            <p class="mx-auto mt-2 text-center text-lg tracking-tight text-slate-700">
-                Learn how to grow your business with our expert advice.
-            </p>
-        </div>
-        <div
-            class="mx-auto mt-8 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 border-t border-gray-200 pt-10 sm:mt-16 sm:pt-16 lg:mx-0 lg:max-w-none lg:grid-cols-3"
-        >
-            {% if posts %} {% for post in posts %}
-            <article class="flex max-w-xl flex-col items-start">
-                <img class="mb-5 aspect-[3/2] w-full rounded-lg object-cover" src="{{ post.image }}" alt="" />
-                <div class="flex flex-col items-start justify-start">
-                    <div class="flex items-center gap-x-4 text-xs">
-                        <time class="text-slate-500">{{ post.published }}</time>
-                    </div>
-                    <div class="relative">
-                        <h3 class="mt-3 text-lg font-semibold leading-6 text-slate-900 hover:text-slate-700">
-                            <a href="{{ post.link }}">
-                                <span class="absolute inset-0"></span>
-                                {{ post.title }}
-                            </a>
-                        </h3>
-                        <p class="mt-5 line-clamp-3 text-sm leading-6 text-slate-700">{{ post.subtitle }}</p>
-                    </div>
-                    <div class="relative mt-4 flex items-center gap-x-4">
-                        <div class="text-sm leading-6">
-                            <p class="font-semibold text-slate-900">{{ post.author }}</p>
-                        </div>
-                    </div>
-                </div>
-            </article>
-            {% endfor %} {% endif %}
-        </div>
-    </section>
-
-    <section class="mb-20 mt-12 w-full px-4">
-        <div
-            class="relative mx-auto flex w-full max-w-7xl flex-col gap-10 overflow-hidden rounded-3xl border-2 bg-black bg-gradient-to-b from-[#2c3050] via-deep-purple to-[#2c3050] bg-cover p-10 shadow-lg lg:flex-row"
-        >
-            <div class="flex flex-col gap-5 text-white lg:w-1/2">
-                <span class="text-[40px] font-semibold leading-tight"
-                    >Get access to our
-                    <br />
-                    <span class="bg-gradient-to-r from-sky-500 via-teal-500 to-blue-500 bg-clip-text text-transparent"
-                        >Free Startup Course
-                    </span>
-                    on Knowledge Hub!</span
-                >
-                <p class="lg:text-lg">
-                    Learn how to build a successful startup from the ground up. Our course is designed to help you
-                    understand the key concepts of entrepreneurship and how to apply them to your own business.
-                    <br /><br />
-                    Sign up now to get access to our free course and start building your dream startup today!
-                </p>
-                <a
-                    href="https://hub.globalify.org"
-                    target="_blank"
-                    class="mt-5 rounded-xl bg-sky-500 px-5 py-3 text-center font-medium transition-colors ease-in-out hover:bg-sky-400 lg:w-72"
-                >
-                    Go to Knowledge Hub
-                </a>
-            </div>
-            <div class="absolute hidden translate-x-1/2 lg:block">
-                <img class="origin-top-left scale-75 rounded-3xl" src="/static/elements/hub_academy.jpeg" alt="" />
-            </div>
-        </div>
-    </section>
+{# ============================================================
+   1. MASTHEAD TICKER
+   ============================================================ #}
+<div class="border-b border-rule bg-paper">
+    <div class="mx-auto flex max-w-[1100px] items-center gap-6 overflow-x-auto px-6 py-2.5 font-mono text-[10.5px] tracking-wide text-faint whitespace-nowrap">
+        <span>INVESTORS&nbsp;<strong class="text-ink">12,431</strong></span>
+        <span>FIRMS&nbsp;<strong class="text-ink">4,512</strong></span>
+        <span>COUNTRIES&nbsp;<strong class="text-ink">90</strong></span>
+        <span>NEW · 7D&nbsp;<strong class="text-green">+182</strong></span>
+        <span class="flex-1"></span>
+        <span>LAST SYNC&nbsp;<strong class="text-ink">TODAY 06:00 UTC</strong></span>
+    </div>
 </div>
+
+{# ============================================================
+   2. HERO — two-column: copy left, record card right
+   ============================================================ #}
+<section class="border-b border-rule bg-paper">
+    <div class="mx-auto grid max-w-[1100px] items-center gap-10 px-6 py-14 lg:grid-cols-[1.12fr_0.88fr] lg:gap-12 lg:py-16">
+
+        {# Left: copy #}
+        <div>
+            <span class="font-mono text-[11px] uppercase tracking-[0.16em] text-brand">The investor record · Vol. 1</span>
+            <h1 class="font-display mt-5 text-5xl font-semibold leading-[1.0] tracking-[-0.025em] text-ink lg:text-6xl">
+                Every investor,<br><em class="italic text-brand">on the record.</em>
+            </h1>
+            <p class="mt-5 max-w-[430px] text-base leading-[1.62] text-soft">
+                A structured, verified directory of 12,000+ investors and venture firms. Search it, filter it, shortlist it, export it. Just the data, kept current.
+            </p>
+            <div class="mt-7 flex items-center gap-5">
+                <a href="/search" class="rounded-[11px] bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-deep">Search the database</a>
+                <a href="/pricing" class="border-b-2 border-brand pb-0.5 text-sm font-semibold text-ink">See pricing</a>
+            </div>
+            <p class="mt-5 font-mono text-[11px] text-faint">// free to search · direct database access · no commissions, no hidden fees</p>
+        </div>
+
+        {# Right: record card specimen #}
+        <div class="rounded-2xl border border-rule bg-surface shadow-[0_18px_50px_rgba(21,18,11,0.08)] overflow-hidden">
+            {# Card header #}
+            <div class="flex items-center justify-between border-b border-rule-2 px-[18px] py-3.5 font-mono text-[10.5px] tracking-[0.08em] text-faint">
+                <span>RECORD · 04412</span>
+                <span class="flex items-center gap-1.5 text-green">&#9679; VERIFIED</span>
+            </div>
+            {# Identity row #}
+            <div class="flex items-center gap-3 border-b border-rule-2 px-[18px] py-[18px]">
+                <div class="h-[46px] w-[46px] flex-none rounded-[13px]" style="background: linear-gradient(135deg,#3B98E8,#0C72D3)"></div>
+                <div>
+                    <div class="font-display text-lg font-semibold text-ink">Index Ventures</div>
+                    <div class="mt-0.5 font-mono text-[11px] text-faint">VC FIRM · EST. 1996</div>
+                </div>
+            </div>
+            {# Field rows #}
+            <div class="flex items-center justify-between border-b border-rule-2 px-[18px] py-3 text-sm">
+                <span class="font-mono text-[11px] uppercase tracking-[0.04em] text-faint">Stage</span>
+                <span class="font-semibold text-ink">Seed – Series B</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-rule-2 px-[18px] py-3 text-sm">
+                <span class="font-mono text-[11px] uppercase tracking-[0.04em] text-faint">Sector</span>
+                <span class="font-semibold text-ink">Fintech, SaaS</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-rule-2 px-[18px] py-3 text-sm">
+                <span class="font-mono text-[11px] uppercase tracking-[0.04em] text-faint">Check size</span>
+                <span class="font-semibold text-ink">€500K – €10M</span>
+            </div>
+            <div class="flex items-center justify-between border-b border-rule-2 px-[18px] py-3 text-sm">
+                <span class="font-mono text-[11px] uppercase tracking-[0.04em] text-faint">Headquarters</span>
+                <span class="font-semibold text-ink">London, UK</span>
+            </div>
+            <div class="flex items-center justify-between px-[18px] py-3 text-sm">
+                <span class="font-mono text-[11px] uppercase tracking-[0.04em] text-faint">Contact</span>
+                <span class="font-semibold text-brand">🔒 Unlock with Pro</span>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{# ============================================================
+   3. SEARCH SECTION — existing form restyled
+   ============================================================ #}
+<section class="border-b border-rule bg-paper px-6 py-10">
+    <div class="mx-auto max-w-[760px]">
+        <form
+            class="flex items-center gap-2 rounded-2xl border border-rule bg-surface px-4 py-3 shadow-sm"
+            action="/search"
+            method="get"
+        >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5 flex-none text-faint">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+                type="search"
+                id="search"
+                name="search"
+                class="w-full border-0 bg-transparent py-2 pl-1 pr-0 text-sm text-ink placeholder:text-faint focus:ring-0"
+                placeholder="Search investors by stage, sector, geography..."
+                autocapitalize="off"
+                autocorrect="off"
+                autocomplete="off"
+                aria-autocomplete="both"
+                enterkeyhint="search"
+                required
+            />
+            <button
+                id="search-btn"
+                type="submit"
+                class="flex-none rounded-[10px] bg-brand px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-deep"
+            >Search</button>
+        </form>
+        <div id="results" class="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
+    </div>
+</section>
+
+{# ============================================================
+   4. CREDIBILITY LINE
+   ============================================================ #}
+<div class="border-b border-rule bg-paper px-6 py-7 text-center">
+    <p class="font-display text-xl font-normal text-soft">
+        <strong class="font-semibold text-ink">12,431</strong> investors · <strong class="font-semibold text-ink">4,512</strong> firms · <strong class="font-semibold text-ink">90</strong> countries, <span class="text-green">verified and updated daily.</span>
+    </p>
+</div>
+
+{# ============================================================
+   5. NUMBERED INDEX — "A database, not a middleman."
+   ============================================================ #}
+<section class="border-b border-rule bg-paper px-6 py-16">
+    <div class="mx-auto max-w-[1100px]">
+        <div class="mb-8 flex items-baseline justify-between">
+            <h2 class="font-display max-w-[520px] text-[34px] font-semibold leading-[1.08] tracking-[-0.02em] text-ink">A database, not a middleman.</h2>
+            <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">What you get</span>
+        </div>
+        <div class="grid grid-cols-1 border-t border-rule md:grid-cols-3">
+            {# 01 #}
+            <div class="border-b border-rule pb-6 pt-6 md:border-b-0 md:border-r md:pr-6">
+                <div class="font-mono text-xs text-brand">01</div>
+                <h3 class="font-display mt-3.5 text-xl font-semibold text-ink">Verified records</h3>
+                <p class="mt-2 text-[13.5px] leading-[1.6] text-soft">Every investor and firm as a structured record: stage, sector, geography, check size, recent deals and contact details, kept consistent.</p>
+            </div>
+            {# 02 #}
+            <div class="border-b border-rule py-6 md:border-b-0 md:border-r md:px-6">
+                <div class="font-mono text-xs text-brand">02</div>
+                <h3 class="font-display mt-3.5 text-xl font-semibold text-ink">Search &amp; filters</h3>
+                <p class="mt-2 text-[13.5px] leading-[1.6] text-soft">Natural-language and faceted search across every field. Narrow 12,000 investors down to your shortlist in seconds.</p>
+            </div>
+            {# 03 #}
+            <div class="py-6 md:pl-6">
+                <div class="font-mono text-xs text-brand">03</div>
+                <h3 class="font-display mt-3.5 text-xl font-semibold text-ink">Export &amp; track</h3>
+                <p class="mt-2 text-[13.5px] leading-[1.6] text-soft">Save shortlists, bookmark investors, export to CSV. Your outreach, your workflow. We never sit in the middle of it.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ============================================================
+   6. LEDGER TABLE PREVIEW — "Inside the database."
+   ============================================================ #}
+<section class="border-b border-rule bg-paper px-6 py-16">
+    <div class="mx-auto max-w-[1100px]">
+        <div class="mb-8 flex items-baseline justify-between">
+            <h2 class="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.02em] text-ink">Inside the database.</h2>
+            <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">The ledger</span>
+        </div>
+        <div class="overflow-hidden rounded-[18px] border border-rule bg-surface shadow-[0_20px_56px_rgba(21,18,11,0.09)]">
+            {# Top bar with tabs + search hint #}
+            <div class="flex items-center justify-between border-b border-rule-2 px-5 py-4">
+                <div class="flex gap-2">
+                    <span class="rounded-[9px] bg-ink px-3.5 py-1.5 text-xs font-medium text-paper">Investors</span>
+                    <span class="rounded-[9px] px-3.5 py-1.5 text-xs font-medium text-soft">Firms</span>
+                </div>
+                <span class="font-mono text-[11.5px] text-faint border border-rule rounded-[9px] px-3.5 py-2">&#8981;&nbsp; seed · fintech · europe</span>
+            </div>
+            {# Table #}
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-sm">
+                    <thead>
+                        <tr>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Name</th>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Stage</th>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Sector</th>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Check</th>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Status</th>
+                            <th class="border-b border-rule bg-panel px-5 py-3.5 text-left font-mono text-[10px] font-normal uppercase tracking-[0.08em] text-faint">Contact</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-rule-2">
+                            <td class="px-5 py-3.5"><span class="flex items-center gap-2.5 font-semibold text-ink"><span class="h-7 w-7 flex-none rounded-[9px]" style="background:linear-gradient(135deg,#3B98E8,#0C72D3)"></span>Index Ventures</span></td>
+                            <td class="px-5 py-3.5 text-soft">Seed – Series B</td>
+                            <td class="px-5 py-3.5 text-soft">Fintech</td>
+                            <td class="px-5 py-3.5 text-soft">€500K – €10M</td>
+                            <td class="px-5 py-3.5 font-mono text-[11px] text-green">&#9679; verified</td>
+                            <td class="px-5 py-3.5 text-xs font-semibold text-brand">Unlock</td>
+                        </tr>
+                        <tr class="border-b border-rule-2">
+                            <td class="px-5 py-3.5"><span class="flex items-center gap-2.5 font-semibold text-ink"><span class="h-7 w-7 flex-none rounded-[9px]" style="background:linear-gradient(135deg,#34D399,#059669)"></span>Sarah Chen</span></td>
+                            <td class="px-5 py-3.5 text-soft">Pre-seed – Seed</td>
+                            <td class="px-5 py-3.5 text-soft">AI</td>
+                            <td class="px-5 py-3.5 text-soft">$25K – $250K</td>
+                            <td class="px-5 py-3.5 font-mono text-[11px] text-green">&#9679; verified</td>
+                            <td class="px-5 py-3.5 text-xs font-semibold text-brand">Unlock</td>
+                        </tr>
+                        <tr class="border-b border-rule-2">
+                            <td class="px-5 py-3.5"><span class="flex items-center gap-2.5 font-semibold text-ink"><span class="h-7 w-7 flex-none rounded-[9px]" style="background:linear-gradient(135deg,#818CF8,#4F46E5)"></span>Atomico</span></td>
+                            <td class="px-5 py-3.5 text-soft">Series A – C</td>
+                            <td class="px-5 py-3.5 text-soft">Deep tech</td>
+                            <td class="px-5 py-3.5 text-soft">€2M – €40M</td>
+                            <td class="px-5 py-3.5 font-mono text-[11px] text-green">&#9679; verified</td>
+                            <td class="px-5 py-3.5 text-xs font-semibold text-brand">Unlock</td>
+                        </tr>
+                        <tr>
+                            <td class="px-5 py-3.5"><span class="flex items-center gap-2.5 font-semibold text-ink"><span class="h-7 w-7 flex-none rounded-[9px]" style="background:linear-gradient(135deg,#FBBF24,#D97706)"></span>Seedcamp</span></td>
+                            <td class="px-5 py-3.5 text-soft">Pre-seed – Seed</td>
+                            <td class="px-5 py-3.5 text-soft">Generalist</td>
+                            <td class="px-5 py-3.5 text-soft">€100K – €2M</td>
+                            <td class="px-5 py-3.5 font-mono text-[11px] text-green">&#9679; verified</td>
+                            <td class="px-5 py-3.5 text-xs font-semibold text-brand">Unlock</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ============================================================
+   7. PRICING TEASER — "Subscription access."
+   ============================================================ #}
+<section class="border-b border-rule bg-paper px-6 py-16">
+    <div class="mx-auto max-w-[1100px]">
+        <div class="mb-8 flex items-baseline justify-between">
+            <h2 class="font-display text-[34px] font-semibold leading-[1.08] tracking-[-0.02em] text-ink">Subscription access.</h2>
+            <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">Pricing</span>
+        </div>
+        <div class="overflow-hidden rounded-[18px] border border-rule">
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                {# Free plan #}
+                <div class="border-b border-rule bg-surface p-8 md:border-b-0 md:border-r">
+                    <div class="font-mono text-[11px] uppercase tracking-[0.1em] text-faint">Free</div>
+                    <div class="font-display mt-2.5 text-[46px] font-semibold leading-none tracking-[-0.02em] text-ink">$0</div>
+                    <ul class="mb-7 mt-5 space-y-0">
+                        <li class="flex gap-2.5 border-b border-rule-2 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Search the full database</li>
+                        <li class="flex gap-2.5 border-b border-rule-2 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Browse every profile &amp; filter</li>
+                        <li class="flex gap-2.5 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Save up to 10 bookmarks</li>
+                    </ul>
+                    <a href="/register" class="block rounded-[11px] border border-ink py-3 text-center text-sm font-semibold text-ink transition-colors hover:bg-ink hover:text-paper">Start free</a>
+                </div>
+                {# Pro plan #}
+                <div class="relative bg-panel p-8">
+                    <span class="absolute right-6 top-4.5 rounded-full bg-brand px-3 py-1 font-mono text-[10px] tracking-[0.08em] text-white">RECOMMENDED</span>
+                    <div class="font-mono text-[11px] uppercase tracking-[0.1em] text-faint">Pro</div>
+                    <div class="font-display mt-2.5 text-[46px] font-semibold leading-none tracking-[-0.02em] text-ink">$7<span class="text-sm font-normal text-faint font-poppins"> / month</span></div>
+                    <ul class="mb-7 mt-5 space-y-0">
+                        <li class="flex gap-2.5 border-b border-rule-2 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Everything in Free</li>
+                        <li class="flex gap-2.5 border-b border-rule-2 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Unlock all contact details</li>
+                        <li class="flex gap-2.5 border-b border-rule-2 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> Unlimited bookmarks &amp; lists</li>
+                        <li class="flex gap-2.5 py-2 text-[13.5px] text-soft"><span class="font-mono text-green">+</span> CSV export</li>
+                    </ul>
+                    <a href="/pricing" class="block rounded-[11px] bg-brand py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-brand-deep">Get Pro access</a>
+                </div>
+            </div>
+        </div>
+        <p class="mt-5 text-center font-mono text-[11.5px] text-faint">A software subscription to a database. Cancel anytime · no commissions · no hidden fees.</p>
+    </div>
+</section>
+
+{# ============================================================
+   8. FINAL CTA — dark band
+   ============================================================ #}
+<section class="border-b border-rule bg-ink px-6 py-[66px] text-center">
+    <div class="mx-auto max-w-[1100px]">
+        <h2 class="font-display text-[42px] font-semibold leading-[1.05] tracking-[-0.02em] text-paper">
+            The whole world of investment,<br><em class="italic" style="color:#7FB8EE">on the record.</em>
+        </h2>
+        <p class="mt-3 mb-7 font-mono text-[14.5px]" style="color:#B8B2A2">// create a free account and start searching today</p>
+        <a href="/search" class="inline-block rounded-[11px] bg-paper px-7 py-3 text-sm font-semibold text-ink transition-colors hover:bg-panel">Search the database &rarr;</a>
+    </div>
+</section>
+
 {% endblock %}

@@ -3,26 +3,26 @@
 <main class="relative flex w-full items-center justify-center overflow-x-hidden px-4 pb-52">
     <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
         <article class="flex flex-col gap-2 text-center">
-            <h1 class="text-3xl font-bold md:text-5xl">Check Your Email</h1>
-            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+            <h1 class="font-display text-3xl font-semibold md:text-5xl">Check Your Email</h1>
+            <p class="max-w-xl text-base text-soft md:text-lg">
                 We've sent a login link to your email address. Click the link in the email to sign in.
                 The link expires in 30&nbsp;minutes.
             </p>
         </article>
 
         {% if status_type %} {% if status_type == '3' %}
-        <div class="rounded-xl text-left text-red-500">{{ msg }}</div>
+        <div class="rounded-xl text-left text-red-600">{{ msg }}</div>
         {% elif status_type == '2' %}
-        <div class="rounded-xl text-orange-400">{{ msg }}</div>
+        <div class="rounded-xl text-amber-600">{{ msg }}</div>
         {% elif status_type == '1' %}
-        <div class="rounded-xl text-lime-500">{{ msg }}</div>
+        <div class="rounded-xl text-green">{{ msg }}</div>
         {% endif %} {% endif %}
 
         <div class="flex flex-col items-center gap-3">
-            <p class="text-sm text-slate-500">Didn't receive an email?</p>
+            <p class="text-sm text-faint">Didn't receive an email?</p>
             <a
                 href="{{ url_for('auth.login') }}"
-                class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                class="inline-flex items-center justify-center rounded-xl border border-rule px-6 py-2 text-sm font-medium text-soft hover:bg-panel"
             >
                 Try again
             </a>

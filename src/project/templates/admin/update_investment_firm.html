@@ -1,78 +1,17 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/layout_admin.html" %}
 
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
+{% block title %}Edit Investment Firm{% endblock %}
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.org/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.org/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-
-        <script src="/static/scripts/menu.js" defer></script>
-
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
-        <title>Edit Investment Firm | Globalify</title>
-    </head>
-
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %}
-    {{ navbar.render(current_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
-            </transition>
-            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+{% block content %}
+<main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex">
-                    <a href="/admin/investment-firms" class="group flex items-center gap-1 text-gray-500">
+                    <a href="/admin/investment-firms" class="group flex items-center gap-1 text-faint">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
                             fill="currentColor"
-                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                            class="size-4 transition-colors ease-in-out group-hover:text-soft"
                         >
                             <path
                                 fill-rule="evenodd"
@@ -80,7 +19,7 @@
                                 clip-rule="evenodd"
                             />
                         </svg>
-                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-soft">Admin</div>
                     </a>
                 </div>
                 {% if investment_firm %}
@@ -88,7 +27,7 @@
                     <h2 class="col-span-full mt-3 text-2xl font-medium">General info</h2>
                     <div class="col-span-full empty:hidden">
                         {% if status_type %} {% if status_type == '3' %}
-                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        <div class="rounded-xl text-red-600">{{ msg }}</div>
                         {% elif status_type == '2' %}
                         <div class="rounded-xl text-orange-400">{{ msg }}</div>
                         {% elif status_type == '1' %}
@@ -96,10 +35,10 @@
                         {% endif %} {% endif %}
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+                        <label class="text-sm font-medium text-soft" for="name">Name</label>
 
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="name"
                             value="{{ investment_firm.name if investment_firm.name else ''}}"
@@ -108,9 +47,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="slug">Slug</label>
+                        <label class="text-sm font-medium text-soft" for="slug">Slug</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="slug"
                             value="{{ investment_firm.slug if investment_firm.slug else ''}}"
@@ -119,9 +58,9 @@
                         />
                     </div>
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="location">Location</label>
+                        <label class="text-sm font-medium text-soft" for="location">Location</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="location"
                             value=""
@@ -129,7 +68,7 @@
                         />
                     </div>
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="about">About</label>
+                        <label class="text-sm font-medium text-soft" for="about">About</label>
                         <textarea
                             class="w-full rounded-lg"
                             type="text"
@@ -141,9 +80,9 @@
                     </div>
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Investment info</h2>
                     <div class="relative col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="location">Rounds</label>
+                        <label class="text-sm font-medium text-soft" for="location">Rounds</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-faint bg-surface px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-brand"
                             id="round-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -165,7 +104,7 @@
                             Rounds
                         </button>
                         <div
-                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-surface opacity-0 shadow-lg transition duration-100 ease-in-out"
                             id="round-options-menu"
                             role="menu"
                             aria-orientation="vertical"
@@ -174,14 +113,14 @@
                             <div class="py-1" role="none">
                                 {% for round in rounds %}
                                 <label
-                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-soft hover:bg-panel hover:text-ink"
                                     role="menuitem"
                                 >
                                     <input
                                         type="checkbox"
                                         name="selected_rounds"
                                         value="{{ round.id }}"
-                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-rule text-brand"
                                     />
                                     {{ round.name }}
                                 </label>
@@ -191,9 +130,9 @@
                     </div>
 
                     <div class="relative col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="location">Industries</label>
+                        <label class="text-sm font-medium text-soft" for="location">Industries</label>
                         <button
-                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-gray-500 bg-white px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-sky-500"
+                            class="flex w-full items-center justify-center gap-1 rounded-lg border border-faint bg-surface px-2 py-3 text-sm ease-in-out group-has-[:checked]:border-brand"
                             id="industry-options"
                             aria-haspopup="true"
                             aria-expanded="true"
@@ -215,7 +154,7 @@
                             Industries
                         </button>
                         <div
-                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-white opacity-0 shadow-lg transition duration-100 ease-in-out"
+                            class="pointer-events-none absolute left-0 z-50 mt-2 max-h-60 w-full origin-top-right scale-95 overflow-y-auto overscroll-y-contain rounded-md bg-surface opacity-0 shadow-lg transition duration-100 ease-in-out"
                             id="industry-options-menu"
                             role="menu"
                             aria-orientation="vertical"
@@ -225,46 +164,46 @@
                                 type="text"
                                 id="search-industries"
                                 placeholder="Search industries..."
-                                class="sticky top-0 w-full rounded-md border bg-white px-3 py-2"
+                                class="sticky top-0 w-full rounded-md border bg-surface px-3 py-2"
                                 v-model="selectedIndustry"
                                 @input="getIndustryList(selectedIndustry)"
                             />
                             <div class="py-1" role="none" ref="industryListElement">
                                 <label
-                                    class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    class="flex items-center px-4 py-2 text-base text-soft hover:bg-panel hover:text-ink"
                                 >
                                     Selected
                                 </label>
                                 {% for industry in firm_industries %}
                                 <label
-                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-soft hover:bg-panel hover:text-ink"
                                     role="menuitem"
                                 >
                                     <input
                                         type="checkbox"
                                         name="selected_industries"
                                         value="{{ industry.id }}"
-                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-rule text-brand"
                                         checked
                                     />
                                     <span>{{ industry.name }}</span>
                                 </label>
                                 {% endfor %} {% for category, industries_list in all_industries.items() %}
                                 <label
-                                    class="flex items-center px-4 py-2 text-base text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    class="flex items-center px-4 py-2 text-base text-soft hover:bg-panel hover:text-ink"
                                 >
                                     {{ category }}
                                 </label>
                                 {% for industry in industries_list %} {% if industry not in firm_industries %}
                                 <label
-                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+                                    class="flex w-full cursor-pointer items-center px-4 py-2 text-sm text-soft hover:bg-panel hover:text-ink"
                                     role="menuitem"
                                 >
                                     <input
                                         type="checkbox"
                                         name="selected_industries"
                                         value="{{ industry.id }}"
-                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-slate-200 text-sky-500"
+                                        class="form-checkbox mr-3 h-5 w-5 rounded-md border-2 border-rule text-brand"
                                     />
                                     <span>{{ industry.name }}</span>
                                 </label>
@@ -274,17 +213,17 @@
                     </div>
 
                     <div class="col-span-full">
-                        <label for="investment" class="block text-sm font-medium leading-6 text-gray-900"
+                        <label for="investment" class="block text-sm font-medium leading-6 text-ink"
                             >Investments</label
                         >
                         {% if investments %}
                         <div
-                            class="col-span-4 flex h-96 w-full flex-col overflow-y-auto rounded-xl border border-gray-700"
+                            class="col-span-4 flex h-96 w-full flex-col overflow-y-auto rounded-xl border border-soft"
                         >
-                            <header class="border-b bg-gray-50 p-5">
+                            <header class="border-b bg-panel p-5">
                                 <input
                                     type="search"
-                                    class="n w-full rounded-lg border-gray-300 py-2"
+                                    class="n w-full rounded-lg border-rule py-2"
                                     placeholder="Search investments"
                                     @input="searchMembers"
                                 />
@@ -311,7 +250,7 @@
                                 <span class="text-sm font-medium">Add an investment</span>
                             </button>
                             {% for investment in investments %}
-                            <div class="flex flex-col justify-between gap-2 border-b border-t bg-white p-4 sm:flex-row">
+                            <div class="flex flex-col justify-between gap-2 border-b border-t bg-surface p-4 sm:flex-row">
                                 <div class="relative flex w-full items-start justify-between gap-3">
                                     <div class="flex flex-col gap-2">
                                         {% if investment.funding_round.company %}
@@ -324,7 +263,7 @@
                                             </a>
                                         </div>
                                         {% endif %} {% if investment.funding_round.announced_date %}
-                                        <span class="text-sm text-gray-500">
+                                        <span class="text-sm text-faint">
                                             Announced on: {{ investment.funding_round.announced_date }}
                                         </span>
                                         {% endif %}
@@ -332,7 +271,7 @@
                                     <div class="ml-auto flex h-full flex-col gap-2">
                                         <button
                                             @click.prevent="updateInvestmentOpened = true, investmentId = {{ investment.id }}"
-                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                            class="flex items-center justify-center rounded-md bg-panel p-2 px-4 transition-colors ease-in-out hover:bg-rule"
                                         >
                                             <svg
                                                 xmlns="http://www.w3.org/2000/svg"
@@ -350,7 +289,7 @@
                                             </svg>
                                         </button>
                                         <button
-                                            class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                            class="flex items-center justify-center rounded-md bg-panel p-2 px-4 transition-colors ease-in-out hover:bg-rule"
                                             @click.prevent="deleteInvestmentOpened = true, investmentId = {{ investment.id }}"
                                         >
                                             <svg
@@ -376,7 +315,7 @@
                         {% else %}
                         <div class="col-span-full">
                             <button
-                                class="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-700 p-3 transition-shadow hover:shadow-md"
+                                class="flex w-full items-center justify-center gap-2 rounded-lg border border-soft p-3 transition-shadow hover:shadow-md"
                                 @click.prevent="createInvestmentOpened = true"
                             >
                                 <svg
@@ -400,9 +339,9 @@
                         {% endif %}
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="n_investments">№ Investments</label>
+                        <label class="text-sm font-medium text-soft" for="n_investments">№ Investments</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="number"
                             id="n_investments"
                             value="{{ profile.n_investments if profile else '' }}"
@@ -410,9 +349,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="n_exits">№ Exits</label>
+                        <label class="text-sm font-medium text-soft" for="n_exits">№ Exits</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="number"
                             id="n_exits"
                             value="{{ profile.n_exits if profile else '' }}"
@@ -420,9 +359,9 @@
                         />
                     </div>
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="n_employees">№ Employees</label>
+                        <label class="text-sm font-medium text-soft" for="n_employees">№ Employees</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="number"
                             id="n_employees"
                             value="{{ investment_firm.n_employees if investment_firm.n_employees else '' }}"
@@ -430,9 +369,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="min_investment">Min Investment</label>
+                        <label class="text-sm font-medium text-soft" for="min_investment">Min Investment</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="number"
                             id="min_investment"
                             value="{{ profile.min_investment if profile else '' }}"
@@ -440,9 +379,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="max_investment">Max Investment</label>
+                        <label class="text-sm font-medium text-soft" for="max_investment">Max Investment</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="number"
                             id="max_investment"
                             value="{{ profile.max_investment if profile else '' }}"
@@ -452,9 +391,9 @@
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Contact info</h2>
 
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="website">Website</label>
+                        <label class="text-sm font-medium text-soft" for="website">Website</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="website"
                             value="{{ investment_firm.website if investment_firm.website else ''}}"
@@ -462,9 +401,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+                        <label class="text-sm font-medium text-soft" for="email">Email</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="email"
                             value="{{ investment_firm.email if investment_firm.email else ''}}"
@@ -472,9 +411,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="phone_number">Phone Number</label>
+                        <label class="text-sm font-medium text-soft" for="phone_number">Phone Number</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="phone_number"
                             value="{{ investment_firm.phone_number if investment_firm.phone_number else ''}}"
@@ -484,7 +423,7 @@
                     <div class="col-span-full">
                         <div>
                             <span class="block text-sm font-medium leading-6">Visibility Settings</span>
-                            <span class="block text-sm font-medium leading-6 text-gray-500"
+                            <span class="block text-sm font-medium leading-6 text-faint"
                                 >You can make the investment firm visible in the search results.
                             </span>
                         </div>
@@ -495,9 +434,9 @@
                             <input type="checkbox" id="is_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Show investment firm in search</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Show investment firm in search</span>
                         </label>
                     </div>
                 </div>
@@ -505,12 +444,10 @@
                 <button
                     id="saveButton"
                     @click="submitInvestmentFirmData"
-                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+                    class="mt-5 w-fit place-self-end rounded-md bg-brand px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-panel0"
                 >
                     Save
                 </button>
                 {% endif %}
             </main>
-        </div>
-    </body>
-</html>
+{% endblock %}

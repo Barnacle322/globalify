@@ -20,7 +20,7 @@
 <main class="mx-auto flex h-full w-full max-w-3xl flex-col items-center justify-center gap-5 px-4 sm:px-9">
     <section class="max-w-md">
         <a
-            class="group flex items-center gap-1.5 text-gray-500 transition-colors ease-in-out"
+            class="group flex items-center gap-1.5 text-faint transition-colors ease-in-out"
             href="{% if entity_type == 'org' %}/firm/{{ entity_slug }}/claim{% else %}/investor/{{ entity_slug }}/claim{% endif %}"
         >
             <svg
@@ -29,15 +29,15 @@
                 viewBox="0 0 24 24"
                 stroke-width="1.5"
                 stroke="currentColor"
-                class="size-5 transition-colors ease-in-out group-hover:text-gray-700"
+                class="size-5 transition-colors ease-in-out group-hover:text-soft"
             >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" />
             </svg>
-            <span class="transition-colors ease-in-out group-hover:text-gray-700">Back</span>
+            <span class="transition-colors ease-in-out group-hover:text-soft">Back</span>
         </a>
         <article class="mt-4 flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Manual Verification</h1>
-            <p class="mt-2 max-w-xl text-base text-slate-600 md:text-lg">
+            <p class="mt-2 max-w-xl text-base text-soft md:text-lg">
                 You are about to request a manual verification. Please enter your personal email and our team will reach
                 out to you shortly. Keep in mind that this process may take some time.
             </p>
@@ -58,7 +58,7 @@
                 type="email"
                 name="email"
                 placeholder="Enter your email"
-                class="w-full rounded-lg border border-gray-300 px-4 py-2"
+                class="w-full rounded-lg border border-rule px-4 py-2"
                 required
             />
             {% if cap_is_configured %}
@@ -68,7 +68,7 @@
             {% endif %}
             <button
                 type="submit"
-                class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"
+                class="inline-flex w-full items-center justify-center rounded-lg bg-ink py-2 font-semibold text-white"
             >
                 Claim profile
             </button>

@@ -8,13 +8,13 @@
 #}
 {% if show_ads %}
 <aside
-    class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center"
+    class="rounded-xl border border-rule bg-panel p-4 text-center"
     aria-label="Sponsored content"
     data-ad-slot="{{ slot | default('default') }}"
 >
-    <p class="mb-2 text-xs font-medium uppercase tracking-widest text-gray-400">Sponsored</p>
-    <div class="flex min-h-[80px] items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 py-6">
-        <p class="text-sm text-gray-400">Your ad could be here — <a href="/contact" class="text-sky-500 hover:underline">get in touch</a>.</p>
+    <p class="mb-2 text-xs font-medium uppercase tracking-widest text-faint">Sponsored</p>
+    <div class="flex min-h-[80px] items-center justify-center rounded-lg border border-dashed border-rule bg-surface px-4 py-6">
+        <p class="text-sm text-faint">Your ad could be here — <a href="/contact" class="text-brand hover:underline">get in touch</a>.</p>
     </div>
 </aside>
 {% endif %}

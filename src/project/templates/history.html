@@ -1,111 +1,15 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/base.html" %}
 
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
+{% block title %}History{% endblock %}
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.org/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.org/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
-
-        <title>History | Globalify</title>
-    </head>
-
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <transition enter-active-class="pop-in" leave-active-class="pop-out">
-            <div v-if="selectedItems.size > 0" class="fixed left-0 right-0 top-0 z-50 w-full bg-white">
-                <nav
-                    class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6"
-                >
-                    <span v-text="'Selected: ' + selectedItems.size" class="text-lg font-medium"></span>
-                    <div class="flex justify-end gap-4">
-                        <button
-                            @click="deleteSelected"
-                            class="flex items-center gap-2 rounded-lg border bg-red-500 px-4 py-2 text-white transition-colors ease-in-out hover:bg-red-400"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke-width="1.5"
-                                stroke="currentColor"
-                                class="size-5"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"
-                                />
-                            </svg>
-                            <span>Delete Selected</span>
-                        </button>
-                        <button
-                            @click="clearSelection"
-                            class="flex items-center gap-2 rounded-lg border bg-white px-4 py-2 transition-colors ease-in-out hover:bg-gray-50"
-                        >
-                            <span>Cancel</span>
-                        </button>
-                    </div>
-                </nav>
-            </div>
-        </transition>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
-            </transition>
-            <main class="flex w-full flex-col p-4 sm:p-6">
+{% block content %}
+<div class="min-h-screen bg-paper">
+    <main class="flex w-full flex-col p-4 sm:p-6">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <h2 class="text-3xl font-bold sm:text-4xl">Search History</h2>
+                <h2 class="font-display text-3xl font-semibold sm:text-4xl">Search History</h2>
 
                 <div
-                    class="relative mt-5 flex h-10 max-w-lg items-center divide-x divide-sky-500 rounded-xl border border-sky-500 bg-white shadow-md"
+                    class="relative mt-5 flex h-10 max-w-lg items-center divide-x divide-rule rounded-xl border border-brand bg-surface shadow-md"
                 >
                     <input
                         id="search"
@@ -142,11 +46,11 @@
                         <transition enter-active-class="animate-zoom-in" leave-active-class="animate-zoom-out">
                             <div
                                 v-if="dropdownOpened"
-                                class="absolute right-0 top-full z-50 mt-1 rounded-lg border border-gray-200 bg-white p-1 text-sm shadow-lg"
+                                class="absolute right-0 top-full z-50 mt-1 rounded-lg border border-rule bg-surface p-1 text-sm shadow-lg"
                             >
                                 <button
                                     @click="selectType('all')"
-                                    class="flex w-full gap-2 rounded-md px-2 py-1.5 hover:bg-sky-500 hover:text-white"
+                                    class="flex w-full gap-2 rounded-md px-2 py-1.5 hover:bg-brand hover:text-white"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
@@ -169,7 +73,7 @@
                                 <button
                                     v-for="type in historyTypes"
                                     @click="selectType(type.value)"
-                                    class="flex w-full gap-2 whitespace-nowrap rounded-md px-2 py-1.5 hover:bg-sky-500 hover:text-white"
+                                    class="flex w-full gap-2 whitespace-nowrap rounded-md px-2 py-1.5 hover:bg-brand hover:text-white"
                                 >
                                     <svg
                                         v-if="type.value === 'investor'"
@@ -224,10 +128,10 @@
                 </div>
 
                 <div class="mb-4 mt-4 flex flex-col sm:mt-6" v-for="[day, histories] of searchHistories" :key="day">
-                    <span class="mb-1 text-lg font-medium text-gray-600" v-text="formatDate(day)"></span>
+                    <span class="mb-1 text-lg font-medium text-soft" v-text="formatDate(day)"></span>
                     <transition-group name="list" tag="div">
                         <div
-                            class="group flex gap-4 rounded-lg p-2 transition-colors ease-in-out hover:bg-gray-100"
+                            class="group flex gap-4 rounded-lg p-2 transition-colors ease-in-out hover:bg-panel"
                             v-for="item in histories"
                             :key="item.id"
                         >
@@ -291,13 +195,13 @@
                                 </svg>
                                 <div class="flex flex-col items-baseline sm:flex-row sm:gap-2">
                                     <span class="font-medium" v-text="item.query"></span>
-                                    <span class="text-sm text-gray-600" v-text="item.readable_type"></span>
+                                    <span class="text-sm text-soft" v-text="item.readable_type"></span>
                                 </div>
                                 <span class="mb-auto ml-auto text-xs sm:hidden" v-text="item.created_at"></span>
                             </a>
                             <button
                                 @click.stop="deleteItems([item.id])"
-                                class="my-auto flex size-8 items-center justify-center rounded-lg font-medium text-gray-400 transition-opacity hover:bg-gray-200 hover:text-red-500 group-hover:opacity-100"
+                                class="my-auto flex size-8 items-center justify-center rounded-lg font-medium text-faint transition-opacity hover:bg-rule hover:text-red-500 group-hover:opacity-100"
                             >
                                 X
                             </button>
@@ -323,6 +227,5 @@
                     </svg>
                 </div>
             </main>
-        </div>
-    </body>
-</html>
+</div>
+{% endblock %}

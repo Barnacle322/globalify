@@ -15,7 +15,7 @@ content %}
     <section class="max-w-md">
         <article class="mt-4 flex flex-col gap-2">
             <h1 class="text-3xl font-semibold md:text-5xl">Claim your profile</h1>
-            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+            <p class="max-w-xl text-base text-soft md:text-lg">
                 Input the code from the verification email.
             </p>
         </article>
@@ -35,7 +35,7 @@ content %}
                 type="text"
                 name="code"
                 placeholder="Code"
-                class="w-full rounded-lg border border-gray-300 px-4 py-2"
+                class="w-full rounded-lg border border-rule px-4 py-2"
                 value="{{ verification_code if verification_code else '' }}"
                 required
             />
@@ -44,12 +44,12 @@ content %}
                 type="email"
                 name="email"
                 placeholder="Enter your email"
-                class="w-full rounded-lg border border-gray-300 px-4 py-2"
+                class="w-full rounded-lg border border-rule px-4 py-2"
                 required
             />
             <button
                 type="submit"
-                class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 py-2 font-semibold text-white"
+                class="inline-flex w-full items-center justify-center rounded-lg bg-ink py-2 font-semibold text-white"
             >
                 Claim profile
             </button>

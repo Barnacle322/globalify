@@ -14,8 +14,8 @@
 {% endif %}
 
 <template id="navbar-template">
-    <header class="view-navbar sticky top-0 z-50 w-full bg-white" ref="header">
-        <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b px-4 sm:grid-cols-2 lg:px-6">
+    <header class="view-navbar sticky top-0 z-50 w-full bg-paper/95 backdrop-blur" ref="header">
+        <nav class="mx-auto grid h-20 w-full max-w-8xl grid-cols-2 items-center border-b border-rule px-4 sm:grid-cols-2 lg:px-6">
             <div class="flex items-center gap-4">
                 <button @click="expandAside" class="w-fit text-lg font-medium">
                     <svg
@@ -33,13 +33,9 @@
                         />
                     </svg>
                 </button>
-                <a href="/search" class="relative flex items-center gap-1">
-                    <img class="hidden h-6 lg:block" src="/static/elements/logo-black.png" alt="" />
-                    <div
-                        class="hidden h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white lg:block"
-                    >
-                        BETA
-                    </div>
+                <a href="/search" class="flex items-baseline gap-0.5" aria-label="Globalify home">
+                    <span class="font-display text-2xl font-semibold tracking-tight text-ink">Globalify</span>
+                    <sup class="font-mono text-[9px] font-bold tracking-widest text-brand">DB</sup>
                 </a>
             </div>
             {% if user %}
@@ -73,9 +69,9 @@
                                     </svg>
                                     <span v-if="unreadNotifications" class="absolute right-0 top-0 flex size-2">
                                         <span
-                                            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"
+                                            class="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75"
                                         ></span>
-                                        <span class="relative inline-flex size-2 rounded-full bg-sky-500"></span>
+                                        <span class="relative inline-flex size-2 rounded-full bg-brand"></span>
                                     </span>
                                 </div>
                             </button>
@@ -119,7 +115,7 @@
                         </transition>
                         <img
                             src="{{ r2_public_url(user.user_info.picture_url) if user.user_info.picture_url else '/static/elements/pfp_placeholder.jpeg' }}"
-                            class="size-8 cursor-pointer rounded-full border border-gray-200 bg-gray-50"
+                            class="size-8 cursor-pointer rounded-full border border-rule bg-panel"
                             @click="profileContextMenuOpened ? closeProfileContextMenu() : openProfileContextMenu()"
                         />
                     </div>

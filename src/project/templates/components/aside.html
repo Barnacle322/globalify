@@ -1,7 +1,7 @@
 {% macro render(user) %}
 <template id="aside-template">
     <aside
-        class="hidden border-r border-gray-200 bg-white px-3 pt-3 transition-all ease-in-out lg:block"
+        class="hidden border-r border-rule bg-paper px-3 pt-3 transition-all ease-in-out lg:block"
         :class=" minified? 'w-[69px] min-w-[69px]' : 'min-w-64  w-64' "
     >
         <nav class="sticky top-24 flex flex-col gap-1">
@@ -9,7 +9,7 @@
                 ref="feed"
                 href="https://hub.globalify.org/feed"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'feed' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'feed' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -32,7 +32,7 @@
                 ref="academy"
                 href="https://hub.globalify.org/academy"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'academy' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'academy' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -55,7 +55,7 @@
                 ref="talk"
                 href="https://hub.globalify.org/global-talk"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'global-talk' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'global-talk' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +79,7 @@
             <a
                 href="https://hub.globalify.org/superconnect"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'superconnect' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'superconnect' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +102,7 @@
             {% if user.is_admin %}
             <a
                 href="https://hub.globalify.org/admin"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors ease-in-out hover:bg-gray-50"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-soft transition-colors ease-in-out hover:bg-panel"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -129,7 +129,7 @@
                 ref="search"
                 href="/search"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'search' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'search' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -151,7 +151,7 @@
                 ref="profile"
                 href="/profile/{{ user.user_info.username }}"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'profile' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -175,7 +175,7 @@
             {% else %}
             <a
                 href="/login"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors ease-in-out hover:bg-gray-50"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-soft transition-colors ease-in-out hover:bg-panel"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -200,7 +200,7 @@
                 ref="settings"
                 href="/settings"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'settings' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'settings' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -225,7 +225,7 @@
                 ref="admin"
                 href="/admin/investors"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'admin' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'admin' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"

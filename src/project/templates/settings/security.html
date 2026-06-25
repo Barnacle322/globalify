@@ -1,29 +1,12 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %} 
-{% block additional_scripts%}
-<script>
-    var upgradeLinkClicked = false;
-    function handleUpgradeClick(link) {
-        if (!upgradeLinkClicked) {
-            upgradeLinkClicked = true;
-            link.classList.add("opacity-50", "pointer-events-none");
-            return true;
-        } else {
-            return false;
-        }
-    }
-</script>
-<!-- prettier-ignore -->
-{% endblock %} 
-{% block title %}Security{% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
+{% extends "layouts/base.html" %}
+{% block title %}Security{% endblock %}
 {% block content %}
-<div class="relative w-full">
-    <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+<div class="relative min-h-screen w-full bg-paper">
+    <nav class="sticky top-[72px] z-10 h-12 w-full overflow-x-auto border-b border-rule bg-paper">
         <div class="flex h-full w-fit gap-2 px-4 text-sm">
             <a
                 href="/settings/general"
-                class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
+                class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-brand"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -42,27 +25,8 @@
                 General
             </a>
             <a
-                href="/settings/companies"
-                class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-                ><svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    class="h-6 w-6"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z"
-                    />
-                </svg>
-                Company
-            </a>
-            <a
                 href="/settings/security"
-                class="flex items-center justify-center gap-2 border-b-2 border-sky-500 px-3 py-2 font-medium transition-colors ease-in-out"
+                class="flex items-center justify-center gap-2 border-b-2 border-brand px-3 py-2 font-medium transition-colors ease-in-out"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -81,55 +45,13 @@
                 </svg>
                 Security
             </a>
-            <a
-                href="/settings/plan"
-                class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                    class="h-6 w-6 shrink-0"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
-                    ></path>
-                </svg>
-                Plan
-            </a>
-            <a
-                href="/settings/billing"
-                class="flex shrink-0 items-center justify-center gap-2 border-b-2 border-transparent px-3 py-2 font-medium transition-colors ease-in-out hover:border-sky-500"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke-width="1.5"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                    class="h-6 w-6 shrink-0"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"
-                    ></path>
-                </svg>
-                Billing
-            </a>
         </div>
     </nav>
     <main class="p-4 sm:p-6">
         <div class="flex flex-col gap-6 sm:grid sm:grid-cols-6">
             <div class="top-36 col-span-2 h-fit sm:sticky">
-                <h2 class="text-2xl font-bold">Delete account</h2>
-                <p class="mt-1 leading-6 text-slate-700">
+                <h2 class="font-display text-2xl font-semibold">Delete account</h2>
+                <p class="mt-1 leading-6 text-soft">
                     No longer want to use our service? You can delete your account here. This action is not reversible.
                     All information related to this account will be deleted permanently.
                 </p>
@@ -138,7 +60,7 @@
                 <a
                     href="/settings/delete-account"
                     type="submit"
-                    class="h-fit items-center justify-center rounded-xl bg-red-500 px-4 py-3 text-white transition-colors ease-in-out hover:bg-red-600"
+                    class="h-fit items-center justify-center rounded-xl bg-red-600 px-4 py-3 text-white transition-colors ease-in-out hover:bg-red-700"
                     onclick="return handleUpgradeClick(this);"
                 >
                     Yes, delete my account
@@ -147,4 +69,19 @@
         </div>
     </main>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    var upgradeLinkClicked = false;
+    function handleUpgradeClick(link) {
+        if (!upgradeLinkClicked) {
+            upgradeLinkClicked = true;
+            link.classList.add("opacity-50", "pointer-events-none");
+            return true;
+        } else {
+            return false;
+        }
+    }
+</script>
 {% endblock %}

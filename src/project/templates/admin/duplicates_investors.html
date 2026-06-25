@@ -1,104 +1,39 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/layout_admin.html" %}
 
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
+{% block title %}Investors{% endblock %}
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.org/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.org/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-
-        <script src="/static/scripts/menu.js" defer></script>
-
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
-        <title>Investors</title>
-    </head>
-
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
-            </transition>
-
-            <main id="app" class="relative w-full overflow-x-clip">
+{% block content %}
+<main id="app" class="relative w-full overflow-x-clip">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+                <nav class="sticky top-16 z-10 h-12 w-full overflow-x-auto border-b border-rule bg-paper">
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
                             href="/admin/investors"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                         >
                             << Back
                         </a>
                         <a
                             href="/admin/investors/filter"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                             >Filter
                         </a>
                         <a
                             href="/admin/investors/duplicates"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-brand px-3 py-2 transition-colors ease-in-out"
                             >Duplicates
                         </a>
                         <a
                             href="/admin/investors/dpl"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                             >Arstan geay
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-8xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Investors duplicates</h1>
+                    <h1 class="font-display text-3xl font-semibold sm:text-5xl">Investors duplicates</h1>
                     {% if status_type %} {% if status_type == '3' %}
-                    <div class="rounded-xl text-red-500">{{ msg }}</div>
+                    <div class="rounded-xl text-red-600">{{ msg }}</div>
                     {% elif status_type == '2' %}
                     <div class="rounded-xl text-orange-400">{{ msg }}</div>
                     {% elif status_type == '1' %}
@@ -119,13 +54,13 @@
                             </div>
                             <button
                                 @click="fetchDuplicates"
-                                class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                class="px-4 py-2 bg-brand text-white rounded hover:bg-brand-deep"
                             >
                                 Search
                             </button>
 
                             <div class="relative group">
-                                <div class="cursor-pointer p-1 text-gray-500 hover:text-gray-700">
+                                <div class="cursor-pointer p-1 text-faint hover:text-soft">
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
                                         class="h-5 w-5"
@@ -141,7 +76,7 @@
                                 </div>
 
                                 <div
-                                    class="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-2 py-2 bg-white border border-gray-200 rounded-lg shadow-lg text-sm text-gray-600"
+                                    class="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-2 py-2 bg-surface border border-rule rounded-lg shadow-lg text-sm text-soft"
                                 >
                                     - AND-Logic Identification. Select parameters to find duplicates. Match occurs only
                                     with full compliance of all selected parameters
@@ -154,20 +89,20 @@
                             v-if="comparisons.length > 0"
                             v-for="(comparison, index) in comparisons"
                             :key="index"
-                            class="flex flex-col gap-4 overflow-hidden rounded-xl border border-gray-200 bg-white p-6"
+                            class="flex flex-col gap-4 overflow-hidden rounded-xl border border-rule bg-surface p-6"
                         >
                             <!-- Header -->
                             <div class="grid grid-cols-5 gap-4 mb-4 text-2xl">
-                                <div class="font-bold text-gray-700">Field Name</div>
-                                <div class="font-bold text-gray-700 text-center">
+                                <div class="font-bold text-soft">Field Name</div>
+                                <div class="font-bold text-soft text-center">
                                     Investor ID
                                     <span v-text="comparison.investorA.id"></span>
                                 </div>
-                                <div class="font-bold text-gray-700 text-center">
+                                <div class="font-bold text-soft text-center">
                                     Investor ID
                                     <span v-text="comparison.investorB.id"></span>
                                 </div>
-                                <div class="col-span-2 font-bold text-gray-700 text-center">Updated Investor</div>
+                                <div class="col-span-2 font-bold text-soft text-center">Updated Investor</div>
                             </div>
 
                             <!-- Fields -->
@@ -179,7 +114,7 @@
                                     <!-- Both None Values -->
                                     <template v-if="valueA === null && comparison.investorB[field] === null">
                                         <div
-                                            class="col-span-2 w-full text-center py-2 px-4 rounded bg-blue-500 text-white"
+                                            class="col-span-2 w-full text-center py-2 px-4 rounded bg-brand text-white"
                                             v-text="'None'"
                                         ></div>
                                     </template>
@@ -240,7 +175,7 @@
                                     <!-- Updated investor Column -->
                                     <div class="col-span-2 grid place-items-center">
                                         <div
-                                            class="w-56 font-medium min-h-[40px] text-center py-2 px-3 rounded bg-gray-100 break-all"
+                                            class="w-56 font-medium min-h-[40px] text-center py-2 px-3 rounded bg-panel break-all"
                                             v-text="getSelectedValue(field, index)"
                                         ></div>
                                     </div>
@@ -250,7 +185,7 @@
                             <div class="flex justify-center mt-2">
                                 <button
                                     @click="mergeInvestors(index)"
-                                    class="w-40 flex items-center font-medium justify-center gap-2 rounded-md bg-gray-300 p-2 transition-colors ease-in-out hover:bg-gray-400"
+                                    class="w-40 flex items-center font-medium justify-center gap-2 rounded-md bg-rule p-2 transition-colors ease-in-out hover:bg-panel"
                                 >
                                     Merge
                                     <svg
@@ -270,7 +205,7 @@
                     </div>
                     <nav v-if="pagination" class="flex w-full items-center justify-center gap-2">
                         <button
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             v-if="pagination.has_prev"
                             @click="goToFirstPage"
                         >
@@ -290,7 +225,7 @@
                             </svg>
                         </button>
                         <button
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             v-if="pagination.has_prev"
                             @click="goToPrevPage"
                         >
@@ -313,15 +248,15 @@
                                 v-text="page"
                                 class="inline-flex size-10 items-center justify-center rounded-lg border text-sm transition-opacity duration-200 ease-in-out hover:opacity-90"
                                 :class="{
-                                    'border-sky-500 bg-white text-sky-500 font-bold': page === pagination.current_page,
-                                    'bg-white': page !== pagination.current_page
+                                    'border-brand bg-surface text-brand font-bold': page === pagination.current_page,
+                                    'bg-surface': page !== pagination.current_page
                                 }"
                                 @click="goToPage(page)"
                             ></button>
                         </template>
 
                         <button
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             v-if="pagination.has_next"
                             @click="goToNextPage"
                         >
@@ -337,7 +272,7 @@
                             </svg>
                         </button>
                         <button
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             v-if="pagination.has_next"
                             @click="goToLastPage"
                         >
@@ -359,6 +294,4 @@
                     </nav>
                 </section>
             </main>
-        </div>
-    </body>
-</html>
+{% endblock %}

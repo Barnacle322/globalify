@@ -1,13 +1,11 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %}
+{% extends "layouts/base.html" %}
 {% block title %}Delete Account{% endblock %}
-{% block head %} {{ super() }} {% endblock %}
 {% block content %}
-<main class="relative flex w-full items-center justify-center overflow-x-hidden px-4 pb-52">
+<main class="relative flex min-h-screen w-full items-center justify-center overflow-x-hidden bg-paper px-4 pb-52">
     <section class="mt-36 flex max-w-md flex-col items-center justify-center gap-8 md:mt-48">
         <article class="flex flex-col gap-2 text-center">
-            <h1 class="text-3xl font-bold md:text-4xl">Delete Account</h1>
-            <p class="max-w-xl text-base text-slate-600 md:text-lg">
+            <h1 class="font-display text-3xl font-semibold md:text-4xl">Delete Account</h1>
+            <p class="max-w-xl text-base text-soft md:text-lg">
                 You are about to permanently delete your account. This action cannot be undone.
                 All information related to this account will be removed.
             </p>
@@ -16,13 +14,13 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <a
                 href="{{ url_for('settings.security') }}"
-                class="inline-flex items-center justify-center rounded-xl border border-slate-300 px-6 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                class="inline-flex items-center justify-center rounded-xl border border-rule px-6 py-2 text-sm font-medium text-soft hover:bg-panel"
             >
                 Cancel
             </a>
             <button
                 type="submit"
-                class="inline-flex items-center justify-center rounded-xl bg-red-500 px-6 py-2 text-sm font-semibold text-white hover:bg-red-600"
+                class="inline-flex items-center justify-center rounded-xl bg-red-600 px-6 py-2 text-sm font-semibold text-white hover:bg-red-700"
                 onclick="this.classList.add('pointer-events-none','opacity-50'); this.innerText='Deleting...';"
             >
                 Yes, delete my account

@@ -1,100 +1,17 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/layout_admin.html" %}
 
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="bio"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
+{% block title %}Edit User{% endblock %}
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.org/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:bio"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.org/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:bio"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-
-        <script src="/static/scripts/menu.js" defer></script>
-
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
-        <title>Edit User | Globalify</title>
-    </head>
-
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %}
-    {{ navbar.render(current_user) }}
-    {% import "components/edit_company_member.html" as edit_company_member %}
-    {{ edit_company_member.render() }}
-    {% import "components/add_company_to_member.html" as add_company_to_member%}
-    {{ add_company_to_member.render(user, companies_in_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component v-if="asideExpanded" @close="asideExpanded = false"></aside-mobile-component>
-            </transition>
-
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <div
-                    class="fixed left-0 top-0 z-50 h-full w-full bg-black/70"
-                    v-if="editCompanyMemberOpened || addMemberOpened"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <edit-company-member-component
-                    v-if="editCompanyMemberOpened"
-                    @close="editCompanyMemberOpened = null"
-                    :user_company="selectedUserCompany"
-                ></edit-company-member-component>
-            </transition>
-            <transition enter-active-class="animate-fade-in" leave-active-class="animate-fade-out">
-                <add-company-component v-if="addMemberOpened" @close="addMemberOpened = null"></add-company-component>
-            </transition>
-
-            <main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
+{% block content %}
+<main id="app" class="mx-auto flex w-full max-w-3xl flex-col p-4 sm:p-9">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
                 <div class="flex">
-                    <a href="/admin/users" class="group flex items-center gap-1 text-gray-500">
+                    <a href="/admin/users" class="group flex items-center gap-1 text-faint">
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
                             fill="currentColor"
-                            class="size-4 transition-colors ease-in-out group-hover:text-gray-700"
+                            class="size-4 transition-colors ease-in-out group-hover:text-soft"
                         >
                             <path
                                 fill-rule="evenodd"
@@ -102,7 +19,7 @@
                                 clip-rule="evenodd"
                             />
                         </svg>
-                        <div class="text-sm transition-colors ease-in-out group-hover:text-gray-700">Admin</div>
+                        <div class="text-sm transition-colors ease-in-out group-hover:text-soft">Admin</div>
                     </a>
                 </div>
 
@@ -110,7 +27,7 @@
                     <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">General Info</h2>
                     <div class="col-span-full empty:hidden">
                         {% if status_type %} {% if status_type == '3' %}
-                        <div class="rounded-xl text-red-500">{{ msg }}</div>
+                        <div class="rounded-xl text-red-600">{{ msg }}</div>
                         {% elif status_type == '2' %}
                         <div class="rounded-xl text-orange-400">{{ msg }}</div>
                         {% elif status_type == '1' %}
@@ -120,13 +37,13 @@
                     <div class="col-span-full flex items-start gap-x-8">
                         {% if not user_info.picture_url %}
                         <img
-                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            class="h-16 w-16 flex-none rounded-xl bg-faint object-cover"
                             src="/static/elements/default_pfp.svg"
                             alt="User picture"
                         />
                         {% else %}
                         <img
-                            class="h-16 w-16 flex-none rounded-xl bg-slate-400 object-cover"
+                            class="h-16 w-16 flex-none rounded-xl bg-faint object-cover"
                             src="{{ r2_public_url(user_info.picture_url) }}"
                             alt="User picture"
                         />
@@ -137,15 +54,15 @@
                                 id="picture"
                                 name="picture"
                                 accept="image/png, image/jpeg"
-                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-sky-500 file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-sky-400"
+                                class="h-12 w-full cursor-pointer rounded-xl border-2 border-stone-300 bg-transparent pr-2 file:mr-4 file:h-full file:cursor-pointer file:rounded-md file:border-0 file:bg-brand file:text-sm file:font-semibold file:text-white file:transition-colors file:ease-in-out file:hover:bg-brand-deep"
                             />
                             <p class="mt-2 text-xs leading-5">JPG or PNG</p>
                         </div>
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">First Name</label>
+                        <label class="text-sm font-medium text-soft" for="first_name">First Name</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="first_name"
                             value="{{ user_info.first_name }}"
@@ -154,9 +71,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="last_name">Last Name</label>
+                        <label class="text-sm font-medium text-soft" for="last_name">Last Name</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="last_name"
                             value="{{ user_info.last_name or '' }}"
@@ -165,9 +82,9 @@
                         />
                     </div>
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="slug">Username</label>
+                        <label class="text-sm font-medium text-soft" for="slug">Username</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="username"
                             placeholder="cool username"
@@ -177,7 +94,7 @@
                     </div>
 
                     <div class="col-span-full">
-                        <label class="text-sm font-medium text-gray-700" for="bio">Bio</label>
+                        <label class="text-sm font-medium text-soft" for="bio">Bio</label>
                         <textarea
                             class="w-full rounded-lg"
                             type="text"
@@ -196,9 +113,9 @@
                             <input type="checkbox" id="is_verified" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Verified</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Verified</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -209,9 +126,9 @@
                             <input type="checkbox" id="is_complete" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Profile Complete</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Profile Complete</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -222,9 +139,9 @@
                             <input type="checkbox" id="is_admin" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Admin</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Admin</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -241,16 +158,16 @@
                             <input type="checkbox" id="refuse_all_invitations" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Block Company Invitations</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Block Company Invitations</span>
                         </label>
                     </div>
                     <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">Contact Info</h2>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+                        <label class="text-sm font-medium text-soft" for="email">Email</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="email"
                             placeholder="user@gmail.com"
@@ -259,9 +176,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="instagram">Instagram</label>
+                        <label class="text-sm font-medium text-soft" for="instagram">Instagram</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="instagram"
                             placeholder="https://www.instagram.com/johndoe"
@@ -276,9 +193,9 @@
                             <input type="checkbox" id="email_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -289,15 +206,15 @@
                             <input type="checkbox" id="instagram_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="linkedin">Linkedin</label>
+                        <label class="text-sm font-medium text-soft" for="linkedin">Linkedin</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="linkedin"
                             placeholder="https://www.linkedin.com/in/johndoe"
@@ -305,9 +222,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="twitter">Twitter</label>
+                        <label class="text-sm font-medium text-soft" for="twitter">Twitter</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="twitter"
                             placeholder="https://twitter.com/johndoe"
@@ -322,9 +239,9 @@
                             <input type="checkbox" id="linkedin_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Visible</span>
                         </label>
                     </div>
                     <div class="col-span-full sm:col-span-3">
@@ -335,17 +252,17 @@
                             <input type="checkbox" id="twitter_public" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Visible</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Visible</span>
                         </label>
                     </div>
 
                     <h2 class="col-span-full mt-3 text-2xl font-medium">Payment Info</h2>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Created At</label>
+                        <label class="text-sm font-medium text-soft" for="first_name">Created At</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="date"
                             id="created"
                             value="{{ user_payment.created.strftime('%Y-%m-%d') if user_payment.created else '' }}"
@@ -353,9 +270,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Expires At</label>
+                        <label class="text-sm font-medium text-soft" for="first_name">Expires At</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="date"
                             id="expires_at"
                             value="{{ user_payment.expires_at.strftime('%Y-%m-%d') if user_payment.expires_at else '' }}"
@@ -363,9 +280,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Stripe Customer ID</label>
+                        <label class="text-sm font-medium text-soft" for="first_name">Stripe Customer ID</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="customer_id"
                             value="{{ user_payment.customer_id or '' }}"
@@ -374,9 +291,9 @@
                         />
                     </div>
                     <div class="col-span-full sm:col-span-3">
-                        <label class="text-sm font-medium text-gray-700" for="first_name">Stripe Subscription ID</label>
+                        <label class="text-sm font-medium text-soft" for="first_name">Stripe Subscription ID</label>
                         <input
-                            class="w-full rounded-lg bg-transparent bg-white"
+                            class="w-full rounded-lg bg-transparent bg-surface"
                             type="text"
                             id="subscription_id"
                             value="{{ user_payment.subscription_id or '' }}"
@@ -406,19 +323,19 @@
                             <input type="checkbox" id="is_active" value="True" class="peer sr-only" />
                             {% endif %}
                             <div
-                                class="peer relative h-6 w-11 rounded-full bg-gray-200 after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300"
+                                class="peer relative h-6 w-11 rounded-full bg-rule after:absolute after:start-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-rule after:bg-surface after:transition-all after:content-[''] peer-checked:bg-brand peer-checked:after:translate-x-full peer-checked:after:border-white peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/30"
                             ></div>
-                            <span class="ms-3 text-sm font-medium text-gray-900">Active Subscription</span>
+                            <span class="ms-3 text-sm font-medium text-ink">Active Subscription</span>
                         </label>
                     </div>
                 </div>
                 <h2 class="col-span-full mb-2 mt-3 text-2xl font-medium">Company Info</h2>
                 <div class="col-span-full">
                     <div class="col-span-4 mt-2 flex w-full flex-col overflow-hidden rounded-xl border-2">
-                        <header class="border-b bg-gray-50 p-5">
+                        <header class="border-b bg-panel p-5">
                             <input
                                 type="search"
-                                class="w-full rounded-lg border-gray-300 py-2"
+                                class="w-full rounded-lg border-rule py-2"
                                 placeholder="Search companies"
                                 @input="searchCompanies"
                             />
@@ -432,7 +349,7 @@
                                 <span class="text-sm font-medium">Add companies</span>
                             </button>
                             {% for user_company in user_companies %}
-                            <div class="flex gap-2 px-5 py-2 even:bg-gray-100">
+                            <div class="flex gap-2 px-5 py-2 even:bg-panel">
                                 <div class="flex gap-2">
                                     <img
                                         class="size-12 rounded-lg"
@@ -443,9 +360,9 @@
                                         <h3 class="text-md font-medium">{{ user_company.company.name}}</h3>
                                         <span>
                                             {% if user_company.position %}
-                                            <span class="text-sm text-gray-700">{{ user_company.position }}, </span>
+                                            <span class="text-sm text-soft">{{ user_company.position }}, </span>
                                             {% endif %}
-                                            <span class="text-sm text-gray-700">
+                                            <span class="text-sm text-soft">
                                                 {{ user_company.role.value.title() }}
                                             </span>
                                         </span>
@@ -454,7 +371,7 @@
                                 <div class="ml-auto flex items-center justify-center">
                                     <button
                                         @click="selectedUserCompany = {{ {'user_id': user_company.user.id, 'user_role': user_company.role.value, 'user_position': user_company.position, 'user_name': user_company.user.user_info.full_name, 'company_id': user_company.company.id, 'company_name': user_company.company.name, 'is_primary': 1 if user_company.is_primary else 0, 'is_public': 1 if user_company.is_public else 0} }}; editCompanyMemberOpened = true"
-                                        class="rounded-lg border bg-white px-2 py-1"
+                                        class="rounded-lg border bg-surface px-2 py-1"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -481,11 +398,9 @@
                 <button
                     id="saveButton"
                     @click="submitUserData"
-                    class="mt-5 w-fit place-self-end rounded-md bg-sky-500 px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-gray-500"
+                    class="mt-5 w-fit place-self-end rounded-md bg-brand px-3 py-2 text-sm text-white disabled:cursor-not-allowed disabled:bg-panel0"
                 >
                     Save
                 </button>
             </main>
-        </div>
-    </body>
-</html>
+{% endblock %}

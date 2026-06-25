@@ -1,124 +1,59 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/layout_admin.html" %}
 
-        <!-- Primary Meta Tags -->
-        <meta name="title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            name="description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
+{% block title %}Investors{% endblock %}
 
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://globalify.org/" />
-        <meta property="og:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="og:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="og:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://globalify.org/" />
-        <meta property="twitter:title" content="Globalify — Connect to the whole world of investment" />
-        <meta
-            property="twitter:description"
-            content="Join Globalify on a mission to help entrepreneurs expand their business around the world!"
-        />
-        <meta property="twitter:image" content="https://globalify.org/static/elements/metapreview.png" />
-
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-
-        <script src="/static/scripts/menu.js" defer></script>
-
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
-        <title>Investors</title>
-    </head>
-
-    <!-- prettier-ignore -->
-    {% import "components/navbar.html" as navbar %} 
-    {{ navbar.render(current_user) }}
-
-    <body class="h-full overflow-x-clip" id="app">
-        <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
-        <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
-            <aside-component :minified="asideMinified"></aside-component>
-            <transition enter-active-class="pop-in" leave-active-class="pop-out">
-                <div
-                    v-if="asideExpanded"
-                    @click="asideExpanded = false"
-                    class="fixed top-0 z-50 block h-full w-full bg-black/60 lg:hidden"
-                ></div>
-            </transition>
-            <transition enter-active-class="animate-slide-in-left" leave-active-class="animate-slide-out-left">
-                <aside-mobile-component
-                    v-if="asideExpanded"
-                    @close-aside="asideExpanded = false"
-                ></aside-mobile-component>
-            </transition>
-
-            <main id="app" class="relative w-full overflow-x-clip">
+{% block content %}
+<main id="app" class="relative w-full overflow-x-clip">
                 <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token() }}" />
-                <nav class="sticky top-20 z-10 h-12 w-full overflow-x-auto border-b bg-white">
+                <nav class="sticky top-16 z-10 h-12 w-full overflow-x-auto border-b border-rule bg-paper">
                     <div class="flex h-full items-end gap-2 px-5 text-sm sm:pr-9">
                         <a
                             href="/admin/investors"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                         >
                             << Back
                         </a>
                         <a
                             href="/admin/investors/filter"
-                            class="shrink-0 border-b-2 border-sky-500 px-3 py-2 transition-colors ease-in-out"
+                            class="shrink-0 border-b-2 border-brand px-3 py-2 transition-colors ease-in-out"
                             >Filter
                         </a>
                         <a
                             href="/admin/investors/duplicates"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                             >Duplicates
                         </a>
                         <a
                             href="/admin/arstan-gay"
-                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-sky-500"
+                            class="shrink-0 border-b-2 border-transparent px-3 py-2 transition-colors ease-in-out hover:border-brand"
                             >Arstan geay
                         </a>
                     </div>
                 </nav>
                 <section class="mx-auto my-10 flex max-w-3xl flex-col gap-5 px-4 sm:my-14">
-                    <h1 class="text-3xl font-bold sm:text-5xl">Investors</h1>
+                    <h1 class="font-display text-3xl font-semibold sm:text-5xl">Investors</h1>
                     {% if status_type %} {% if status_type == '3' %}
-                    <div class="rounded-xl text-red-500">{{ msg }}</div>
+                    <div class="rounded-xl text-red-600">{{ msg }}</div>
                     {% elif status_type == '2' %}
                     <div class="rounded-xl text-orange-400">{{ msg }}</div>
                     {% elif status_type == '1' %}
                     <div class="rounded-xl text-lime-500">{{ msg }}</div>
                     {% endif %} {% endif %}
-                    <nav class="h-auto min-h-12 w-full overflow-x-auto border-b bg-white">
+                    <nav class="h-auto min-h-12 w-full overflow-x-auto border-b border-rule bg-paper">
                         <div class="flex h-full flex-wrap items-center gap-4 px-5 py-3 text-sm sm:pr-9">
                             <label class="flex items-center gap-2">
-                                <input type="checkbox" v-model="filters.check_about" class="rounded border-gray-300" />
+                                <input type="checkbox" v-model="filters.check_about" class="rounded border-rule" />
                                 About
                             </label>
                             <label class="flex items-center gap-2">
-                                <input type="checkbox" v-model="filters.check_email" class="rounded border-gray-300" />
+                                <input type="checkbox" v-model="filters.check_email" class="rounded border-rule" />
                                 Email
                             </label>
                             <label class="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     v-model="filters.check_twitter"
-                                    class="rounded border-gray-300"
+                                    class="rounded border-rule"
                                 />
                                 Twitter
                             </label>
@@ -126,7 +61,7 @@
                                 <input
                                     type="checkbox"
                                     v-model="filters.check_linkedin"
-                                    class="rounded border-gray-300"
+                                    class="rounded border-rule"
                                 />
                                 LinkedIn
                             </label>
@@ -134,13 +69,13 @@
                                 <input
                                     type="checkbox"
                                     v-model="filters.check_website"
-                                    class="rounded border-gray-300"
+                                    class="rounded border-rule"
                                 />
                                 Website
                             </label>
                             <button
                                 @click="applyFilters"
-                                class="rounded-md bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 transition-colors"
+                                class="rounded-md bg-brand px-4 py-2 text-white hover:bg-brand-deep transition-colors"
                             >
                                 Show
                             </button>
@@ -151,13 +86,13 @@
                     <div class="flex flex-col gap-3">
                         {% for investor in investors %}
                         <div
-                            class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-gray-200 bg-white p-4 sm:flex-row"
+                            class="flex flex-col justify-between gap-2 overflow-hidden rounded-xl border border-rule bg-surface p-4 sm:flex-row"
                         >
                             <div class="relative flex w-full items-start justify-between gap-3">
                                 <div class="flex flex-col gap-3 flex-grow">
                                     <h2 class="text-lg font-medium">{{ investor.name }}</h2>
                                     <div class="flex gap-1">
-                                        <h3 class="text-gray-700">Missing:</h3>
+                                        <h3 class="text-soft">Missing:</h3>
                                         <span class="line-clamp-2 text-red-800">
                                             <!-- prettier-ignore -->
                                             {% if not investor.about %}
@@ -177,7 +112,7 @@
                                 <div class="ml-auto flex h-full flex-col gap-2">
                                     <a
                                         href="/admin/investors/{{investor.id}}"
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                        class="flex items-center justify-center rounded-md bg-panel p-2 px-4 transition-colors ease-in-out hover:bg-rule"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -196,7 +131,7 @@
                                     </a>
                                     <a
                                         href="/search?investor={{ investor.slug }}"
-                                        class="flex items-center justify-center rounded-md bg-gray-50 p-2 px-4 transition-colors ease-in-out hover:bg-gray-200"
+                                        class="flex items-center justify-center rounded-md bg-panel p-2 px-4 transition-colors ease-in-out hover:bg-rule"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -227,7 +162,7 @@
                     <nav class="flex w-full items-center justify-center gap-2">
                         {% if pagination and pagination.has_other_pages %} {% if pagination.has_prev %}
                         <a
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             href="/admin/investors/filter?page=1&search={{ request.args.get('search', '') }}"
                         >
                             <svg
@@ -247,7 +182,7 @@
                         </a>
                         <a
                             id="prev"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             href="/admin/investors/filter?page={{ pagination.prev }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
@@ -264,7 +199,7 @@
                         {% endif %} {% for page in pagination.pages %} {% if page == pagination.current_page %}
                         <a
                             id="current"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500 transition-opacity duration-200 ease-in-out hover:opacity-90"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border border-brand bg-surface text-sm font-bold text-brand transition-opacity duration-200 ease-in-out hover:opacity-90"
                             href="/admin/investors/filter?page={{ pagination.current_page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ pagination.current_page }}
@@ -272,7 +207,7 @@
                         {% else %}
                         <a
                             id="page"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white text-sm font-medium"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface text-sm font-medium"
                             href="/admin/investors/filter?page={{ page }}&search={{ request.args.get('search', '') }}"
                         >
                             {{ page }}
@@ -280,7 +215,7 @@
                         {% endif %} {% endfor %} {% if pagination.has_next %}
                         <a
                             id="next"
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             href="/admin/investors/filter?page={{ pagination.next }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
@@ -295,7 +230,7 @@
                             </svg>
                         </a>
                         <a
-                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-white"
+                            class="inline-flex size-10 items-center justify-center rounded-lg border bg-surface"
                             href="/admin/investors/filter?page={{ pagination.last_page }}&search={{ request.args.get('search', '') }}"
                         >
                             <svg
@@ -317,6 +252,4 @@
                     </nav>
                 </section>
             </main>
-        </div>
-    </body>
-</html>
+{% endblock %}

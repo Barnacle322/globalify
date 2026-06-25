@@ -1348,6 +1348,9 @@ select {
 .top-8 {
   top: 2rem;
 }
+.top-\[18px\] {
+  top: 18px;
+}
 .top-full {
   top: 100%;
 }

@@ -17,7 +17,7 @@
     <button
         type="submit"
         class="inline-flex items-center gap-1 rounded-lg border px-2 py-1 text-xs transition-colors
-               {% if bookmarked %}border-sky-300 bg-sky-50 text-sky-600 hover:bg-sky-100{% else %}border-gray-200 bg-white text-gray-500 hover:bg-gray-50{% endif %}"
+               {% if bookmarked %}border-brand/30 bg-brand-tint text-brand-deep hover:bg-brand-tint{% else %}border-rule bg-surface text-soft hover:bg-panel{% endif %}"
         aria-label="{{ 'Remove bookmark' if bookmarked else 'Bookmark' }}"
         title="{{ 'Remove bookmark' if bookmarked else 'Save to bookmarks' }}"
     >

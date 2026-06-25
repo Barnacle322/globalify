@@ -11,7 +11,7 @@
 <main class="mx-auto mb-20 flex min-h-screen w-full max-w-3xl flex-col gap-5 px-4 py-5 sm:px-9">
     <section class="flex w-full flex-col gap-4">
         <h1 class="text-3xl font-semibold sm:text-4xl">Claim the profile</h1>
-        <p class="max-w-xl text-pretty text-gray-700">
+        <p class="max-w-xl text-pretty text-soft">
             You are about to request a claim for the following profile. Please make sure that you are claiming
             your own profile. We will make sure to verify your claim as soon as possible. After the verification, you
             will be able to make edits, delete or add new information to the profile.
@@ -41,7 +41,7 @@
 
                         Name:
                     </span>
-                    <span class="text-gray-700">{{ entity_name }}</span>
+                    <span class="text-soft">{{ entity_name }}</span>
                 </div>
                 {% if entity_email %}
                 <div class="grid grid-cols-2">
@@ -52,7 +52,7 @@
                             viewBox="0 0 24 24"
                             stroke-width="1.5"
                             stroke="currentColor"
-                            class="size-5 text-sky-600"
+                            class="size-5 text-brand-deep"
                         >
                             <path
                                 stroke-linecap="round"
@@ -62,7 +62,7 @@
                         </svg>
                         Email:
                     </span>
-                    <span class="text-sky-500">{{ entity_email }}</span>
+                    <span class="text-brand">{{ entity_email }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -86,7 +86,7 @@
                 {% if entity_type == 'org' %}
                 <a
                     href="/firm/{{ entity_slug }}/claim/manual"
-                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-brand px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-brand-deep"
                 >
                     Request a manual verification
                 </a>
@@ -94,7 +94,7 @@
                 <span class="font-medium">or</span>
                 <a
                     href="/firm/{{ entity_slug }}/claim/email"
-                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-brand px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-brand-deep"
                 >
                     Verify with an email
                 </a>
@@ -102,7 +102,7 @@
                 {% else %}
                 <a
                     href="/investor/{{ entity_slug }}/claim/manual"
-                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-brand px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-brand-deep"
                 >
                     Request a manual verification
                 </a>
@@ -110,7 +110,7 @@
                 <span class="font-medium">or</span>
                 <a
                     href="/investor/{{ entity_slug }}/claim/email"
-                    class="inline-flex w-full items-center justify-center rounded-xl bg-sky-500 px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-sky-400"
+                    class="inline-flex w-full items-center justify-center rounded-xl bg-brand px-3 py-2 font-semibold text-white transition-colors ease-in-out hover:bg-brand-deep"
                 >
                     Verify with an email
                 </a>

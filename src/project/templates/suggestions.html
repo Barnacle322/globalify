@@ -1,17 +1,12 @@
-<!-- prettier-ignore -->
-{% extends "layouts/layout_app.html" %} 
-{% block title %}Investors{% endblock %} 
-{% block head %} {{ super() }} {% endblock %} 
+{% extends "layouts/base.html" %}
+{% block title %}Best Picks{% endblock %}
 {% block content %}
-<main class="mx-auto h-full min-h-screen w-full overflow-x-visible">
-    <section class="mx-4 mt-4 rounded-3xl bg-deep-purple px-4 py-24 text-white">
-        <div class="flex flex-col gap-4 text-center">
-            <h1
-                class="mx-auto w-fit bg-gradient-to-r from-[#36B7FF] to-[#DE7CC8] bg-clip-text text-4xl font-bold tracking-tight text-transparent sm:text-5xl xl:text-6xl"
-            >
-                Best Picks
-            </h1>
-            <p class="mx-auto max-w-[600px] md:text-xl">
+<main class="mx-auto min-h-screen w-full bg-paper">
+    <section class="border-b border-rule bg-panel px-4 py-16">
+        <div class="mx-auto max-w-7xl text-center">
+            <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">For you</span>
+            <h1 class="font-display mx-auto mt-3 w-fit text-[40px] font-semibold leading-[1.03] tracking-[-0.02em] text-ink sm:text-[52px]">Best Picks</h1>
+            <p class="mx-auto mt-3 max-w-[600px] text-[15px] text-soft">
                 Based on your preferences, here are some of the best investors for your startup.
             </p>
         </div>
@@ -19,7 +14,7 @@
     <section class="container mx-auto max-w-7xl px-4 py-12">
         <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {% if access %} {% for investor in investors %}
-            <article class="shadow-card-hover flex flex-col rounded-lg bg-white p-6 transition-shadow ease-in-out">
+            <article class="flex flex-col rounded-2xl border border-rule bg-surface p-6 transition-colors ease-in-out hover:border-brand/40">
                 <div class="flex items-center justify-between">
                     <a href="/investor/{{ investor.slug }}" class="text-xl font-bold leading-none">
                         {{ investor.full_name }}
@@ -45,7 +40,7 @@
                 <div class="mt-5 flex flex-col gap-2 text-sm">
                     {% if investor.location %}
                     <div class="grid grid-cols-2">
-                        <span class="inline-flex items-center gap-1 text-gray-700">
+                        <span class="inline-flex items-center gap-1 text-soft">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -71,7 +66,7 @@
                     </div>
                     {% endif %} {% if investor.firm_name %}
                     <div class="grid grid-cols-2 text-sm">
-                        <span class="inline-flex items-center gap-1 text-gray-700">
+                        <span class="inline-flex items-center gap-1 text-soft">
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -92,7 +87,7 @@
                     </div>
                     {% endif %} {% if investor.rounds|length != 0 %}
                     <div class="mt-5 flex flex-col gap-2">
-                        <span class="flex gap-1 text-sm text-gray-700"
+                        <span class="flex gap-1 text-sm text-soft"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -112,7 +107,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for round in investor.rounds %}
                             <a
-                                class="text-nowrap rounded-full bg-[#FFC9FC] px-2 py-1.5 text-xs font-medium text-[#D182CD]"
+                                class="text-nowrap rounded-full border border-rule-2 bg-panel px-2.5 py-0.5 text-[11px] font-medium text-soft"
                                 >{{ round.name }}
                             </a>
                             {% endfor %}
@@ -120,7 +115,7 @@
                     </div>
                     {% endif %} {% if investor.industries|length != 0 %}
                     <div class="mt-2 flex flex-col gap-2">
-                        <span class="flex gap-1 text-sm text-gray-700"
+                        <span class="flex gap-1 text-sm text-soft"
                             ><svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 fill="none"
@@ -140,7 +135,7 @@
                         <div class="flex flex-wrap gap-1">
                             {% for industry in investor.industries %}
                             <a
-                                class="text-nowrap rounded-lg bg-[#B9E5FF] px-2 py-1.5 text-xs font-medium text-[#3EB5FD]"
+                                class="text-nowrap rounded-lg bg-brand-tint px-2.5 py-0.5 text-[11px] font-medium text-brand-deep"
                                 >{{ industry.name }}</a
                             >
                             {% endfor %}
@@ -151,35 +146,35 @@
             </article>
             {% endfor %} {% else %}
             <p class="flex flex-col items-center justify-center">
-                <span class="text-3xl font-bold">View more</span>
-                <span class="mt-2 max-w-sm text-center text-slate-800"
+                <span class="font-display text-3xl font-semibold">View more</span>
+                <span class="mt-2 max-w-sm text-center text-soft"
                     >Sign up for our Early Bird tier to get full access to the database of investors!</span
                 >
                 <a
-                    class="mt-3 rounded-lg bg-black px-3 py-2 text-white transition-colors ease-in-out hover:bg-neutral-900"
+                    class="mt-3 rounded-lg bg-ink px-3 py-2 text-white transition-colors ease-in-out hover:bg-ink/90"
                     href="/tier-selection"
                     >Get access</a
                 >
             </p>
             {% for investor in investors %}
-            <article class="pointer-events-none flex select-none flex-col rounded-lg border p-6 shadow-sm blur-sm">
+            <article class="pointer-events-none flex select-none flex-col rounded-2xl border border-rule p-6 blur-sm">
                 <div class="flex flex-row items-center gap-2">
                     <a class="text-xl font-bold leading-none">
                         Investor Name
-                        <span class="text-base font-normal text-gray-500">@ Firm name</span>
+                        <span class="text-base font-normal text-faint">@ Firm name</span>
                     </a>
                 </div>
 
                 <div class="mt-2 flex flex-col gap-2">
-                    <p class="text-gray-500">{{ investor.location }}</p>
+                    <p class="text-faint">{{ investor.location }}</p>
                     <p class="flex flex-wrap gap-1">
                         {% for round in investor.rounds %}
-                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ round.name }}</a>
+                        <a class="text-nowrap rounded-lg bg-ink px-2 py-1 text-sm text-white">{{ round.name }}</a>
                         {% endfor %}
                     </p>
                     <p class="flex flex-wrap gap-1">
                         {% for industry in investor.industries %}
-                        <a class="text-nowrap rounded-lg bg-black px-2 py-1 text-sm text-white">{{ industry.name }}</a>
+                        <a class="text-nowrap rounded-lg bg-ink px-2 py-1 text-sm text-white">{{ industry.name }}</a>
                         {% endfor %}
                     </p>
                 </div>
@@ -189,13 +184,13 @@
     </section>
     <section class="mx-auto mb-40 mt-12 flex flex-col justify-evenly gap-10 px-4 text-center">
         <div class="flex flex-col items-center justify-center gap-7">
-            <h1 class="text-3xl font-bold tracking-tighter sm:text-4xl">Not what you are looking for?</h1>
-            <p class="max-w-[600px] text-gray-500 md:text-xl dark:text-gray-400">
-                Try updating your preferences in <a class="underline" href="/settings/company">settings</a> to get
+            <h1 class="font-display text-3xl font-semibold tracking-tighter sm:text-4xl">Not what you are looking for?</h1>
+            <p class="max-w-[600px] text-faint md:text-xl dark:text-faint">
+                Try updating your preferences in <a class="underline" href="/settings">settings</a> to get
                 better suggestions.
             </p>
             <a
-                class="max-w-fit rounded-xl bg-black px-12 py-4 text-white transition-colors ease-in-out hover:bg-neutral-900"
+                class="max-w-fit rounded-xl bg-ink px-12 py-4 text-white transition-colors ease-in-out hover:bg-ink/90"
                 href="/search"
                 >Go back</a
             >

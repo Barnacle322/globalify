@@ -7,7 +7,16 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                "deep-purple": "#231645",
+                brand: { DEFAULT: "#0C72D3", deep: "#0B5BA8", tint: "#E6F0FB" },
+                green: { DEFAULT: "#0E7A4F", tint: "#E7F2EB" },
+                paper: "#FBFAF6", panel: "#F5F2E9", surface: "#FFFFFF",
+                ink: "#15120B", soft: "#544D3C", faint: "#8A8470",
+                rule: "#E6E0D2", "rule-2": "#EDE8DC",
+            },
+            fontFamily: {
+                display: ['"Fraunces"', "serif"],
+                poppins: ['"Poppins"', "sans-serif"],
+                mono: ['"Space Mono"', "ui-monospace", "monospace"],
             },
             maxWidth: {
                 "8xl": "90rem",

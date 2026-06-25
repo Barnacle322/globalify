@@ -1,21 +1,22 @@
 {#
   _footer.html — public site footer
-  Includes: brand logo, tagline, social links, product/info/company/legal columns.
+  Includes: wordmark, tagline, social links, product/company/legal columns, colophon.
   Legal links (privacy policy, terms of service) are always present.
 #}
-<footer class="bg-[#1D1539] text-sm text-white" aria-labelledby="footer-heading">
+<footer class="border-t border-rule bg-paper text-soft" aria-labelledby="footer-heading">
     <h2 id="footer-heading" class="sr-only">Footer</h2>
-    <div class="mx-auto max-w-7xl px-8 pb-8 pt-12 sm:pt-24 lg:px-8 lg:pt-32">
+    <div class="mx-auto max-w-7xl px-8 pb-8 pt-16">
         <div class="grid xl:grid-cols-3 xl:gap-8">
             <div class="space-y-8">
-                <img
-                    class="h-7"
-                    src="/static/elements/globalify.png"
-                    alt="Globalify"
-                />
-                <p>Use Globalify — Fund Your Startup</p>
-                <div class="flex space-x-6">
-                    <a href="https://www.instagram.com/globalifyxyz/" target="_blank" rel="noopener noreferrer">
+                <!-- Brand / wordmark -->
+                <a href="/" class="flex items-baseline gap-0.5" aria-label="Globalify home">
+                    <span class="font-display text-xl font-semibold text-ink">Globalify</span>
+                    <sup class="font-mono text-[8px] font-bold tracking-widest text-brand">DB</sup>
+                </a>
+                <p class="mt-3 max-w-xs text-sm text-soft">A verified, self-serve database of investors and venture firms.</p>
+                <!-- Social links -->
+                <div class="flex space-x-6 text-faint">
+                    <a href="https://www.instagram.com/globalifyxyz/" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">
                         <span class="sr-only">Instagram</span>
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true">
                             <path
@@ -25,7 +26,7 @@
                             ></path>
                         </svg>
                     </a>
-                    <a href="https://twitter.com/globalifyxyz" target="_blank" rel="noopener noreferrer">
+                    <a href="https://twitter.com/globalifyxyz" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">
                         <span class="sr-only">Twitter</span>
                         <svg fill="currentColor" viewBox="0 0 24 24" class="h-6 w-6" aria-hidden="true">
                             <path
@@ -33,7 +34,7 @@
                             ></path>
                         </svg>
                     </a>
-                    <a href="https://www.linkedin.com/company/globalifyxyz/" target="_blank" rel="noopener noreferrer">
+                    <a href="https://www.linkedin.com/company/globalifyxyz/" target="_blank" rel="noopener noreferrer" class="hover:text-ink transition-colors">
                         <span class="sr-only">LinkedIn</span>
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -50,62 +51,60 @@
                     </a>
                 </div>
             </div>
+            <!-- Footer columns: Product / Company / Legal -->
             <div class="mt-16 grid grid-cols-2 gap-8 xl:col-span-2 xl:mt-0">
                 <div class="md:grid md:grid-cols-2 md:gap-8">
                     <div>
-                        <h3 class="font-semibold">Products</h3>
+                        <h3 class="font-mono text-[10.5px] uppercase tracking-wider text-faint">Product</h3>
                         <ul role="list" class="mt-6 space-y-4">
                             <li>
-                                <a href="/investors" class="hover:text-gray-300 transition-colors">Investors</a>
+                                <a href="/investors" class="text-sm text-soft hover:text-ink transition-colors">Investors</a>
                             </li>
                             <li>
-                                <a href="/firms" class="hover:text-gray-300 transition-colors">Firms</a>
+                                <a href="/firms" class="text-sm text-soft hover:text-ink transition-colors">Firms</a>
+                            </li>
+                            <li>
+                                <a href="/pricing" class="text-sm text-soft hover:text-ink transition-colors">Pricing</a>
                             </li>
                         </ul>
                     </div>
                     <div class="mt-10 md:mt-0">
-                        <h3 class="font-semibold">Information</h3>
+                        <h3 class="font-mono text-[10.5px] uppercase tracking-wider text-faint">Company</h3>
                         <ul role="list" class="mt-6 space-y-4">
                             <li>
-                                <a href="https://blog.globalify.org" target="_blank" rel="noopener noreferrer" class="hover:text-gray-300 transition-colors">Blog</a>
+                                <a href="/about" class="text-sm text-soft hover:text-ink transition-colors">About</a>
                             </li>
                             <li>
-                                <a href="/help" class="hover:text-gray-300 transition-colors">Help</a>
+                                <a href="https://blog.globalify.org" target="_blank" rel="noopener noreferrer" class="text-sm text-soft hover:text-ink transition-colors">Blog</a>
+                            </li>
+                            <li>
+                                <a href="/contact" class="text-sm text-soft hover:text-ink transition-colors">Contact</a>
                             </li>
                         </ul>
                     </div>
                 </div>
                 <div class="md:grid md:grid-cols-2 md:gap-8">
                     <div>
-                        <h3 class="font-semibold">Company</h3>
+                        <h3 class="font-mono text-[10.5px] uppercase tracking-wider text-faint">Legal</h3>
                         <ul role="list" class="mt-6 space-y-4">
                             <li>
-                                <a href="/about" class="hover:text-gray-300 transition-colors">About</a>
+                                <a href="/privacy-policy" class="text-sm text-soft hover:text-ink transition-colors">Privacy</a>
                             </li>
                             <li>
-                                <a href="/jobs" class="hover:text-gray-300 transition-colors">Jobs</a>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="mt-10 md:mt-0">
-                        <h3 class="font-semibold">Legal</h3>
-                        <ul role="list" class="mt-6 space-y-4">
-                            <li>
-                                <a href="/privacy-policy" class="hover:text-gray-300 transition-colors">Privacy Policy</a>
+                                <a href="/terms-of-service" class="text-sm text-soft hover:text-ink transition-colors">Terms</a>
                             </li>
                             <li>
-                                <a href="/terms-of-service" class="hover:text-gray-300 transition-colors">Terms of Service</a>
-                            </li>
-                            <li>
-                                <a href="/refund-policy" class="hover:text-gray-300 transition-colors">Refund Policy</a>
+                                <a href="/refund-policy" class="text-sm text-soft hover:text-ink transition-colors">Refunds</a>
                             </li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="mt-16 border-t border-gray-900/10 pt-8 sm:mt-20 lg:mt-24">
-            <p class="text-xs leading-5">© 2024 Globalify. All rights reserved.</p>
+        <!-- Colophon -->
+        <div class="mt-12 flex items-center justify-between border-t border-rule pt-6 font-mono text-[11px] uppercase tracking-wide text-faint">
+            <span>© 2026 Globalify</span>
+            <span>A self-serve investor database</span>
         </div>
     </div>
 </footer>

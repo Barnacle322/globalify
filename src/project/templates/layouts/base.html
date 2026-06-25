@@ -40,10 +40,24 @@
             type="font/ttf"
             crossorigin
         />
+        <link
+            rel="preload"
+            href="/static/elements/fonts/fraunces-600.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
+        <link
+            rel="preload"
+            href="/static/elements/fonts/space-mono-400.woff2"
+            as="font"
+            type="font/woff2"
+            crossorigin
+        />
         <script src="/static/scripts/menu.js" defer></script>
         {% block head_extra %}{% endblock %}
     </head>
-    <body class="font-poppins w-full {% block body_class %}{% endblock %}">
+    <body class="font-poppins w-full bg-paper text-ink {% block body_class %}{% endblock %}">
         {% include "partials/_nav.html" %}
         <main id="main-content" tabindex="-1">
             {% block content %}{% endblock %}

@@ -2582,6 +2582,10 @@ select {
   --tw-bg-opacity: 1;
   background-color: rgb(240 253 244 / var(--tw-bg-opacity));
 }
+.bg-paper {
+  --tw-bg-opacity: 1;
+  background-color: rgb(251 250 246 / var(--tw-bg-opacity));
+}
 .bg-pink-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(252 231 243 / var(--tw-bg-opacity));
@@ -3143,6 +3147,10 @@ select {
 .text-green-700 {
   --tw-text-opacity: 1;
   color: rgb(21 128 61 / var(--tw-text-opacity));
+}
+.text-ink {
+  --tw-text-opacity: 1;
+  color: rgb(21 18 11 / var(--tw-text-opacity));
 }
 .text-lime-500 {
   --tw-text-opacity: 1;

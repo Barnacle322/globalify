@@ -2,7 +2,7 @@
 {% extends "layouts/layout_clean.html" %}
 {% block additional_scripts %}
 {% if cap_is_configured %}
-<script src="{{ cap_api_endpoint }}/cap.js" async></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/cap-widget@0.1.56"></script>
 {% endif %}
 {% if entity_type == 'org' %}
 <script src="/static/scripts/claiming/firm_manual.js" defer></script>
@@ -63,8 +63,7 @@
             />
             {% if cap_is_configured %}
             <cap-widget
-                data-cap-api-endpoint="{{ cap_api_endpoint }}"
-                data-cap-sitekey="{{ cap_site_key }}"
+                data-cap-api-endpoint="{{ cap_site_endpoint }}"
             ></cap-widget>
             {% endif %}
             <button

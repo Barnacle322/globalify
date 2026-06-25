@@ -249,7 +249,7 @@ class TestVerifyCaptchaConfigured:
         mock_post.assert_not_called()
 
     def test_siteverify_url_is_correct(self, monkeypatch):
-        """verify_captcha POSTs to {cap_api_endpoint}/siteverify."""
+        """verify_captcha POSTs to {cap_api_endpoint}/{cap_site_key}/siteverify."""
         self._configure(monkeypatch)
         cap_module = self._set_settings(monkeypatch)
 
@@ -262,7 +262,7 @@ class TestVerifyCaptchaConfigured:
 
         call_args = mock_post.call_args
         url = call_args[0][0] if call_args[0] else call_args[1].get("url", call_args[0][0])
-        assert url == "https://cap.example.com/siteverify"
+        assert url == "https://cap.example.com/test-site-key/siteverify"
 
     def test_siteverify_posts_secret_and_response(self, monkeypatch):
         """verify_captcha sends {secret, response} in the request body."""
@@ -285,6 +285,7 @@ class TestVerifyCaptchaConfigured:
     def test_trailing_slash_stripped_from_endpoint(self, monkeypatch):
         """Trailing slash on cap_api_endpoint must not double up in the URL."""
         monkeypatch.setenv("_CAP_API_ENDPOINT", "https://cap.example.com/")
+        # site key carried in the path: {endpoint}/{site_key}/siteverify
         monkeypatch.setenv("_CAP_SITE_KEY", "test-site-key")
         monkeypatch.setenv("_CAP_SECRET", "test-secret-key")
         monkeypatch.setenv("SECRET_KEY", "test-secret")
@@ -305,7 +306,7 @@ class TestVerifyCaptchaConfigured:
         cap_module.verify_captcha("token")
 
         call_url = mock_post.call_args[0][0]
-        assert call_url == "https://cap.example.com/siteverify"
+        assert call_url == "https://cap.example.com/test-site-key/siteverify"
         assert "//" not in call_url.replace("://", "")
 
 
@@ -420,7 +421,10 @@ class TestLoginCapUnconfigured:
 
 
 class TestCapIsConfigured:
-    """Settings.cap_is_configured returns True only when endpoint + secret are set."""
+    """Settings.cap_is_configured returns True only when endpoint + site key + secret are all set.
+
+    Current Cap carries the site key in the URL path, so it is required.
+    """
 
     def test_false_when_no_cap_vars(self, monkeypatch):
         for var in ("_CAP_API_ENDPOINT", "_CAP_SITE_KEY", "_CAP_SECRET"):
@@ -457,7 +461,8 @@ class TestCapIsConfigured:
         settings = Settings(_env_file=None)
         assert settings.cap_is_configured is False
 
-    def test_true_when_endpoint_and_secret_set(self, monkeypatch):
+    def test_false_when_site_key_missing(self, monkeypatch):
+        """Endpoint + secret without a site key is NOT configured (site key is in the URL path)."""
         monkeypatch.setenv("_CAP_API_ENDPOINT", "https://cap.example.com")
         monkeypatch.setenv("_CAP_SECRET", "secret123")
         monkeypatch.delenv("_CAP_SITE_KEY", raising=False)
@@ -467,7 +472,7 @@ class TestCapIsConfigured:
         from project.config import Settings
 
         settings = Settings(_env_file=None)
-        assert settings.cap_is_configured is True
+        assert settings.cap_is_configured is False
 
     def test_true_when_all_cap_vars_set(self, monkeypatch):
         monkeypatch.setenv("_CAP_API_ENDPOINT", "https://cap.example.com")

@@ -3,10 +3,11 @@
 When Cap env vars are absent (dev / CI / test), ``verify_captcha`` returns
 ``True`` immediately (skip-mode) so no Cap server is needed locally.
 
-When Cap is configured, the function POSTs to ``{cap_api_endpoint}/siteverify``
-with ``{secret, response}`` (reCAPTCHA-compatible), parses ``success`` from the
-JSON response, and returns the boolean.  On any network error or timeout the
-function logs and returns ``False`` (fail-closed when configured).
+When Cap is configured, the function POSTs to
+``{cap_api_endpoint}/{cap_site_key}/siteverify`` with ``{secret, response}``
+(reCAPTCHA-compatible), parses ``success`` from the JSON response, and returns
+the boolean.  On any network error or timeout the function logs and returns
+``False`` (fail-closed when configured).
 
 An absent or empty token when Cap is configured returns ``False`` without any
 network call — there is nothing to verify.
@@ -54,7 +55,8 @@ def verify_captcha(token: str | None) -> bool:
     if not token:
         return False
 
-    url = f"{_settings.cap_api_endpoint.rstrip('/')}/siteverify"
+    # Current Cap addresses each site by key in the path: {endpoint}/{site_key}/siteverify
+    url = f"{_settings.cap_site_endpoint}siteverify"
     try:
         response = requests.post(
             url,

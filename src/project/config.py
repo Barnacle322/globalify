@@ -103,8 +103,24 @@ class Settings(BaseSettings):
 
     @property
     def cap_is_configured(self) -> bool:
-        """True when the Cap endpoint and secret are both present."""
-        return bool(self.cap_api_endpoint and self.cap_secret)
+        """True when the Cap endpoint, site key and secret are all present.
+
+        Current Cap puts the site key in the URL path (for both the widget and
+        siteverify), so the site key is required — not just endpoint + secret.
+        """
+        return bool(self.cap_api_endpoint and self.cap_site_key and self.cap_secret)
+
+    @property
+    def cap_site_endpoint(self) -> str | None:
+        """Per-site Cap base URL ``{endpoint}/{site_key}/`` (trailing slash).
+
+        The current Cap API addresses each site by its key in the path: the
+        widget points ``data-cap-api-endpoint`` here, and server verification
+        POSTs to ``{this}siteverify``.
+        """
+        if not (self.cap_api_endpoint and self.cap_site_key):
+            return None
+        return f"{self.cap_api_endpoint.rstrip('/')}/{self.cap_site_key}/"
 
     @property
     def paddle_is_configured(self) -> bool:

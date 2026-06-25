@@ -1,6 +1,7 @@
 FROM python:3.14-slim-bookworm
 
 COPY src/ app/
+COPY migrations/ /app/migrations/
 COPY pyproject.toml /app
 COPY uv.lock /app
 COPY README.md /app

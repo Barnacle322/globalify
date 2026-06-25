@@ -9,20 +9,21 @@
 {% block head_extra %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 pt-20">
+<div class="min-h-screen bg-paper">
 
     {# ── Page header ── #}
-    <header class="bg-white border-b border-gray-100">
+    <header class="bg-surface border-b border-rule">
         <div class="mx-auto max-w-7xl px-6 py-10">
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">{{ heading }}</h1>
+            <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">Directory</span>
+            <h1 class="font-display mt-2 text-[34px] font-semibold leading-[1.05] tracking-[-0.02em] text-ink sm:text-[42px]">{{ heading }}</h1>
             {% if facet_intro %}
-            <p class="mt-2 text-sm text-gray-600">{{ facet_intro }}</p>
+            <p class="mt-3 max-w-2xl text-[15px] text-soft">{{ facet_intro }}</p>
             {% endif %}
         </div>
     </header>
 
     {# ── Search bar ── #}
-    <div class="bg-white border-b border-gray-100">
+    <div class="bg-surface border-b border-rule">
         <div class="mx-auto max-w-7xl px-6 py-4">
             <form
                 method="get"
@@ -39,12 +40,12 @@
                     name="q"
                     value="{{ query }}"
                     placeholder="Search by name, firm, or focus area…"
-                    class="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                    class="w-full rounded-[11px] border border-rule bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                     aria-label="Search {{ heading }}"
                 />
                 <button
                     type="submit"
-                    class="rounded-lg bg-sky-500 px-4 py-2 text-sm font-medium text-white hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
+                    class="rounded-[11px] bg-brand px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-deep focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
                 >
                     <span id="search-indicator" class="htmx-indicator">
                         <svg class="inline size-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -57,7 +58,7 @@
                 {% if query %}
                 <a
                     href="{{ canonical_path }}"
-                    class="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                    class="rounded-[11px] border border-rule px-4 py-2.5 text-sm text-soft transition-colors hover:bg-panel"
                 >
                     Clear
                 </a>

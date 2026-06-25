@@ -4,12 +4,12 @@
   Context variables match browse/list.html.
 #}
 <div id="results">
-    <p class="mb-4 text-sm text-gray-500" id="results-count">
+    <p class="mb-5 font-mono text-[11px] uppercase tracking-[0.08em] text-faint" id="results-count">
         {% if found > 0 %}
             {{ found }} result{{ 's' if found != 1 else '' }} found
-            {% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+            {% if query %} for <span class="font-medium text-soft normal-case">&ldquo;{{ query }}&rdquo;</span>{% endif %}
         {% else %}
-            No results found{% if query %} for <span class="font-medium text-gray-700">&ldquo;{{ query }}&rdquo;</span>{% endif %}
+            No results found{% if query %} for <span class="font-medium text-soft normal-case">&ldquo;{{ query }}&rdquo;</span>{% endif %}
         {% endif %}
     </p>
     {# ── Ad slot (non-Pro viewers only, config-gated) ── #}
@@ -27,16 +27,16 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="flex flex-col items-center justify-center py-24 text-center">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-4 size-12 text-gray-300" aria-hidden="true">
+    <div class="flex flex-col items-center justify-center rounded-2xl border border-rule bg-surface py-24 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mb-4 size-12 text-rule" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
-        <p class="text-lg font-medium text-gray-700">No {{ heading | lower }} found</p>
-        <p class="mt-1 text-sm text-gray-500">
+        <p class="font-display text-lg font-semibold text-ink">No {{ heading | lower }} found</p>
+        <p class="mt-1.5 text-[13.5px] text-soft">
             {% if query %}
-                Try a different search term or <a href="{{ canonical_path }}" class="text-sky-500 underline">clear the search</a>.
+                Try a different search term or <a href="{{ canonical_path }}" class="text-brand underline underline-offset-2">clear the search</a>.
             {% else %}
-                Check back soon — we're always adding new profiles.
+                Check back soon. We're always adding new records.
             {% endif %}
         </p>
     </div>
@@ -48,7 +48,7 @@
         {% if pagination.has_prev %}
         <a
             href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page=1"
-            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            class="inline-flex size-10 items-center justify-center rounded-[11px] border border-rule bg-surface text-soft transition-colors hover:bg-panel"
             aria-label="First page"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
@@ -57,7 +57,7 @@
         </a>
         <a
             href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.prev }}"
-            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            class="inline-flex size-10 items-center justify-center rounded-[11px] border border-rule bg-surface text-soft transition-colors hover:bg-panel"
             aria-label="Previous page"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
@@ -68,17 +68,17 @@
 
         {% for p in pagination.pages %}
             {% if p == 0 %}
-            <span class="inline-flex size-10 items-center justify-center text-gray-400">&hellip;</span>
+            <span class="inline-flex size-10 items-center justify-center text-faint">&hellip;</span>
             {% elif p == pagination.current_page %}
             <a
                 href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-sky-500 bg-white text-sm font-bold text-sky-500"
+                class="inline-flex size-10 items-center justify-center rounded-[11px] border border-brand bg-brand-tint text-sm font-bold text-brand-deep"
                 aria-current="page"
             >{{ p }}</a>
             {% else %}
             <a
                 href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ p }}"
-                class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                class="inline-flex size-10 items-center justify-center rounded-[11px] border border-rule bg-surface text-sm font-medium text-soft transition-colors hover:bg-panel"
             >{{ p }}</a>
             {% endif %}
         {% endfor %}
@@ -86,7 +86,7 @@
         {% if pagination.has_next %}
         <a
             href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.next }}"
-            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            class="inline-flex size-10 items-center justify-center rounded-[11px] border border-rule bg-surface text-soft transition-colors hover:bg-panel"
             aria-label="Next page"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">
@@ -95,7 +95,7 @@
         </a>
         <a
             href="{{ canonical_path }}?{% if query %}q={{ query | urlencode }}&{% endif %}page={{ pagination.last_page }}"
-            class="inline-flex size-10 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+            class="inline-flex size-10 items-center justify-center rounded-[11px] border border-rule bg-surface text-soft transition-colors hover:bg-panel"
             aria-label="Last page"
         >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4" aria-hidden="true">

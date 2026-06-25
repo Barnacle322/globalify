@@ -1,26 +1,11 @@
-<!doctype html>
-<html class="scroll-smooth" lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{% extends "layouts/base.html" %}
 
-        <link rel="stylesheet" href="/static/css/main.css" />
-        <link rel="icon" type="image/png" href="/static/elements/icon.png" />
-        <title>Terms of Service | Globalify</title>
-    </head>
-    <body class="font-poppins mx-auto flex h-full max-w-7xl flex-col items-center justify-center gap-3">
-        <nav class="flex h-24 w-full items-center justify-start px-9">
-            <a href="/" class="relative flex items-center gap-1"
-                ><img class="h-6" src="/static/elements/logo-black.png" />
-                <div
-                    class="h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white"
-                >
-                    BETA
-                </div></a
-            >
-        </nav>
-        <main class="my-10 px-6">
-            <article class="prose mx-auto lg:prose-lg">
+{% block title %}Terms of Service{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-paper">
+    <div class="mx-auto max-w-3xl px-6 py-16">
+        <article class="prose">
                 <h1>Terms of Service</h1>
                 <p>Last updated June 25, 2026</p>
                 <hr />
@@ -188,7 +173,7 @@
                     If you have any questions about these Terms, please contact us at
                     <a href="mailto:info@globalify.org">info@globalify.org</a>.
                 </p>
-            </article>
-        </main>
-    </body>
-</html>
+        </article>
+    </div>
+</div>
+{% endblock %}

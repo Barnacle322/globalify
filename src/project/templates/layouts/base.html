@@ -59,11 +59,11 @@
     </head>
     <body class="font-poppins w-full bg-paper text-ink {% block body_class %}{% endblock %}">
         {% include "partials/_nav.html" %}
-        <main id="main-content" tabindex="-1" class="pt-[68px]">
+        <main id="main-content" tabindex="-1" class="pt-[72px]">
             {% block content %}{% endblock %}
         </main>
         {% include "partials/_footer.html" %}
-        {% block json_ld %}{% endblock %}
+        {% block json_ld %}{% endblock %}   
         {% include "partials/_analytics.html" %}
         {% block scripts %}{% endblock %}
     </body>

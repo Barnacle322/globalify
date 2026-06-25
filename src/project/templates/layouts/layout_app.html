@@ -35,13 +35,6 @@
         <link rel="stylesheet" href="/static/css/main.css" />
         <link rel="icon" type="image/png" href="/static/elements/icon.png" />
 
-        <!-- Font -->
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap"
-            rel="stylesheet"
-        />
 
         {% block additional_scripts %}{% endblock %}
         <title>{% block title %}{% endblock %} • Globalify</title>
@@ -52,7 +45,7 @@
     {% import "components/navbar.html" as navbar %} 
     {{ navbar.render(current_user) }}
 
-    <body class="h-full overflow-x-clip" id="app">
+    <body class="font-poppins h-full overflow-x-clip bg-paper text-ink" id="app">
         <navbar-component @open-aside="asideExpanded = true, asideMinified = !asideMinified"></navbar-component>
         <div class="relative mx-auto flex h-full min-h-screen w-full max-w-8xl">
             <aside-component :minified="asideMinified"></aside-component>

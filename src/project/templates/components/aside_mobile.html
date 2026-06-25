@@ -1,8 +1,8 @@
 {% macro render(user) %}
 <template id="aside-mobile-template">
-    <aside class="fixed top-0 z-50 block h-full w-64 rounded-r-xl border-r border-gray-200 bg-white p-4 lg:hidden">
+    <aside class="fixed top-0 z-50 block h-full w-64 rounded-r-xl border-r border-rule bg-paper p-4 lg:hidden">
         <div class="flex items-center justify-end">
-            <button @click="closeAside" class="rounded-lg p-1 transition-colors ease-in-out hover:bg-gray-50">
+            <button @click="closeAside" class="rounded-lg p-1 transition-colors ease-in-out hover:bg-panel">
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -20,7 +20,7 @@
                 ref="feed"
                 href="https://hub.globalify.org/feed"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'feed' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'feed' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -43,7 +43,7 @@
                 ref="academy"
                 href="https://hub.globalify.org/academy"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'academy' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'academy' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -66,7 +66,7 @@
                 ref="talk"
                 href="https://hub.globalify.org/global-talk"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'global-talk' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'global-talk' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +89,7 @@
             <a
                 href="https://hub.globalify.org/superconnect"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'superconnect' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'superconnect' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -112,7 +112,7 @@
             {% if user.is_admin %}
             <a
                 href="https://hub.globalify.org/admin"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors ease-in-out hover:bg-gray-50"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-soft transition-colors ease-in-out hover:bg-panel"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -139,7 +139,7 @@
                 ref="search"
                 href="/search"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'search' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'search' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 20 20"
@@ -161,7 +161,7 @@
                 ref="profile"
                 href="/profile/{{ user.user_info.username }}"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'profile' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'profile' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +185,7 @@
             {% else %}
             <a
                 href="/login"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-gray-700 transition-colors ease-in-out hover:bg-gray-50"
+                class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm text-soft transition-colors ease-in-out hover:bg-panel"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -211,7 +211,7 @@
                 ref="settings"
                 href="/settings"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'settings' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'settings' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
                 ><svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
@@ -236,7 +236,7 @@
                 ref="admin"
                 href="/admin/investors"
                 class="flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-sm transition-colors ease-in-out"
-                :class="currentPath == 'admin' ? 'bg-sky-500 text-white fill-white' : 'hover:bg-gray-50 text-gray-700'"
+                :class="currentPath == 'admin' ? 'bg-brand text-white fill-white' : 'hover:bg-panel text-soft'"
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -257,13 +257,9 @@
                 </transition>
             </a>
             {% endif %}
-            <div class="relative mt-auto flex items-center gap-1">
-                <img class="h-6 object-contain" src="/static/elements/logo-black.png" alt="" />
-                <div
-                    class="h-fit w-fit rounded-full bg-sky-500 px-1 py-1 text-[8px] font-medium leading-none tracking-tight text-white"
-                >
-                    BETA
-                </div>
+            <div class="relative mt-auto flex items-baseline gap-0.5">
+                <span class="font-display text-xl font-semibold tracking-tight text-ink">Globalify</span>
+                <sup class="font-mono text-[8px] font-bold tracking-widest text-brand">DB</sup>
             </div>
         </nav>
     </aside>

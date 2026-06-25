@@ -2911,6 +2911,9 @@ select {
 .pt-8 {
   padding-top: 2rem;
 }
+.pt-\[68px\] {
+  padding-top: 68px;
+}
 .text-left {
   text-align: left;
 }

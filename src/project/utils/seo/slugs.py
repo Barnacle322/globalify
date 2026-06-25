@@ -240,9 +240,9 @@ def build_facet_canonical(entity_kind, classified: list[tuple[str, str, str]]) -
 
     Examples:
         PERSON, [("investor_type","angel","type"), ("stages","seed","stage")]
-            → "https://globalify.xyz/investors/angel/seed"
+            → "https://globalify.org/investors/angel/seed"
         ORG, [("org_type","vc_firm","type")]
-            → "https://globalify.xyz/firms/vc-firm"
+            → "https://globalify.org/firms/vc-firm"
     """
     from ..enums import EntityType
 
@@ -262,5 +262,5 @@ def build_facet_canonical(entity_kind, classified: list[tuple[str, str, str]]) -
 
     path = "/".join(segments)
     if path:
-        return f"https://globalify.xyz/{base_path}/{path}"
-    return f"https://globalify.xyz/{base_path}"
+        return f"https://globalify.org/{base_path}/{path}"
+    return f"https://globalify.org/{base_path}"

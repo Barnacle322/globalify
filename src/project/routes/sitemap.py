@@ -25,7 +25,7 @@ from ..utils.seo.slugs import enum_to_slug
 
 sitemap_bp = Blueprint("sitemap", __name__)
 
-BASE_URL = "https://globalify.xyz"
+BASE_URL = "https://globalify.org"
 CHUNK_SIZE = 50_000
 SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 

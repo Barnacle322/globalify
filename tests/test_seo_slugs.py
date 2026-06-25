@@ -347,7 +347,7 @@ class TestBuildFacetCanonical:
             ("geographies", "london", "geo"),
         ]
         url = build_facet_canonical(EntityType.PERSON, classified)
-        assert url.startswith("https://globalify.xyz/investors/")
+        assert url.startswith("https://globalify.org/investors/")
         assert "/angel/" in url or url.endswith("/angel")
         assert "seed" in url
         assert "london" in url
@@ -360,7 +360,7 @@ class TestBuildFacetCanonical:
             ("org_type", "vc_firm", "type"),
         ]
         url = build_facet_canonical(EntityType.ORG, classified)
-        assert url.startswith("https://globalify.xyz/firms/")
+        assert url.startswith("https://globalify.org/firms/")
         assert "vc-firm" in url
 
     def test_canonical_order_is_enforced(self):

@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     sqlalchemy_pool_recycle: int = Field(default=1800, alias="SQLALCHEMY_POOL_RECYCLE")
     sentry_dsn: str | None = Field(default=None, alias="_SENTRY_DSN")
     resend_api_key: str | None = Field(default=None, alias="_RESEND_API_KEY")
-    email_from: str = Field(default="Globalify <noreply@mail.globalify.xyz>", alias="_EMAIL_FROM")
+    email_from: str = Field(default="Globalify <noreply@mail.globalify.org>", alias="_EMAIL_FROM")
 
     # Cloudflare R2 image storage (all optional; gates R2 vs local-dev fallback)
     r2_account_id: str | None = Field(default=None, alias="_R2_ACCOUNT_ID")
@@ -66,7 +66,7 @@ class Settings(BaseSettings):
 
     # SEC EDGAR — polite identified User-Agent (required by SEC fair-access policy)
     edgar_user_agent: str = Field(
-        default="Globalify Directory contact@globalify.xyz",
+        default="Globalify Directory contact@globalify.org",
         alias="_EDGAR_USER_AGENT",
     )
 

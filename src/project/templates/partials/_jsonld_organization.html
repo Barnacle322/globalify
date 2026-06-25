@@ -19,7 +19,7 @@
 #}
 {%- if org %}
 {%- set same_as = [] %}
-{%- if org.slug %}{% set _ = same_as.append('https://globalify.xyz/firms/' ~ org.slug) %}{% endif %}
+{%- if org.slug %}{% set _ = same_as.append('https://globalify.org/firms/' ~ org.slug) %}{% endif %}
 {%- if org.linkedin_url %}{% set _ = same_as.append(org.linkedin_url) %}{% endif %}
 {%- if org.twitter_url %}{% set _ = same_as.append(org.twitter_url) %}{% endif %}
 {%- if org.website_url %}{% set _ = same_as.append(org.website_url) %}{% endif %}
@@ -27,7 +27,7 @@
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": org.name | default(''),
-    "url": ('https://globalify.xyz/firms/' ~ org.slug) if org.slug else (org.website_url | default('')),
+    "url": ('https://globalify.org/firms/' ~ org.slug) if org.slug else (org.website_url | default('')),
     "description": org.description | default(''),
     "sameAs": same_as
 } %}
@@ -38,7 +38,7 @@
 {%- set members = [] %}
 {%- for aff in affiliations %}
 {%- set member = {"@type": "Person", "name": aff.full_name | default('')} %}
-{%- if aff.slug %}{% set member = dict(member, url='https://globalify.xyz/investors/' ~ aff.slug) %}{% endif %}
+{%- if aff.slug %}{% set member = dict(member, url='https://globalify.org/investors/' ~ aff.slug) %}{% endif %}
 {%- set _ = members.append(member) %}
 {%- endfor %}
 {%- set ld = dict(ld, member=members) %}

@@ -128,11 +128,11 @@ Phase 1a removed the Vue **runtime** but left Vue **markup** in ~30 templates, s
 **Canonical/noindex policy:**
 - Index,follow + self-canonical: entity pages, `/investors`, `/firms`, all single-facet, whitelisted ≥N cross-products.
 - `noindex,follow` + canonical→browse root: any URL with GET params, 3+ facet combos, below-threshold combos, `page>1`.
-- Entity pages self-canonical to absolute https URL (replace hardcoded `og:url=globalify.xyz/`).
+- Entity pages self-canonical to absolute https URL (replace hardcoded `og:url=globalify.org/`).
 
 **Sitemap segmentation:** `<sitemapindex>` → `sitemap-investors-N.xml`/`sitemap-firms-N.xml` (50k chunks, `is_public AND is_approved`, lastmod from `updated_at`) + `sitemap-facets.xml` (registry `is_canonical`).
 
-**robots.txt:** `Disallow: /admin /settings /login /claim /payment` + `Disallow: /*?*`; drop OAuth disallows; `Sitemap: https://globalify.xyz/sitemap.xml`.
+**robots.txt:** `Disallow: /admin /settings /login /claim /payment` + `Disallow: /*?*`; drop OAuth disallows; `Sitemap: https://globalify.org/sitemap.xml`.
 
 **JSON-LD per page:** Person (jobTitle from Affiliation.title, worksFor→Org, sameAs linkedin/twitter/website, address from Geography) on `/investors/<slug>`; Organization (url, sameAs, address, employee from Affiliations) on `/firms/<slug>`; BreadcrumbList everywhere; ItemList on all browse/facet/search pages.
 

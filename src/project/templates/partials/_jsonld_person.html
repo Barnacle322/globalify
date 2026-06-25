@@ -18,7 +18,7 @@
 #}
 {%- if person %}
 {%- set same_as = [] %}
-{%- if person.slug %}{% set _ = same_as.append('https://globalify.xyz/investors/' ~ person.slug) %}{% endif %}
+{%- if person.slug %}{% set _ = same_as.append('https://globalify.org/investors/' ~ person.slug) %}{% endif %}
 {%- if person.linkedin_url %}{% set _ = same_as.append(person.linkedin_url) %}{% endif %}
 {%- if person.twitter_url %}{% set _ = same_as.append(person.twitter_url) %}{% endif %}
 {%- if person.website_url %}{% set _ = same_as.append(person.website_url) %}{% endif %}
@@ -26,14 +26,14 @@
     "@context": "https://schema.org",
     "@type": "Person",
     "name": person.full_name | default(''),
-    "url": ('https://globalify.xyz/investors/' ~ person.slug) if person.slug else '',
+    "url": ('https://globalify.org/investors/' ~ person.slug) if person.slug else '',
     "description": person.headline | default(''),
     "sameAs": same_as
 } %}
 {%- if profile_image_url %}{% set ld = dict(ld, image=profile_image_url) %}{% endif %}
 {%- if affiliation %}
 {%- set works_for = {"@type": "Organization", "name": affiliation.org_name | default('')} %}
-{%- if affiliation.org_slug %}{% set works_for = dict(works_for, url='https://globalify.xyz/firms/' ~ affiliation.org_slug) %}{% endif %}
+{%- if affiliation.org_slug %}{% set works_for = dict(works_for, url='https://globalify.org/firms/' ~ affiliation.org_slug) %}{% endif %}
 {%- set ld = dict(ld, jobTitle=affiliation.title | default(''), worksFor=works_for) %}
 {%- endif %}
 {%- if person.location_name %}{% set ld = dict(ld, address={"@type": "PostalAddress", "addressLocality": person.location_name}) %}{% endif %}

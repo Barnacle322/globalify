@@ -151,7 +151,7 @@ def create_app():
                     "username": "barnacle",
                 },
                 {
-                    "email": "arstan@globalify.xyz",
+                    "email": "arstan@globalify.org",
                     "first_name": "Arstanbek",
                     "last_name": "Usenov",
                     "username": "barnacle2",

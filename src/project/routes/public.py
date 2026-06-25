@@ -330,7 +330,7 @@ def _render_facet_page(
     """Build and render a facet browse page."""
     heading, intro = _build_facet_heading(classified, entity_kind)
     canonical_url = build_facet_canonical(entity_kind, classified)
-    canonical_path = "/" + canonical_url.split("globalify.xyz/", 1)[-1]
+    canonical_path = "/" + canonical_url.split("globalify.org/", 1)[-1]
 
     filters = _classified_to_filters(classified)
 
@@ -366,7 +366,7 @@ def _render_facet_page(
         robots = "index,follow"
 
     # BreadcrumbList JSON-LD context
-    base_url = "https://globalify.xyz"
+    base_url = "https://globalify.org"
     base_name = "Investors" if entity_kind == EntityType.PERSON else "Investment Firms"
     base_path = "/investors" if entity_kind == EntityType.PERSON else "/firms"
     breadcrumbs = [
@@ -545,11 +545,11 @@ def _render_person_profile(person: Person):
         is_bookmarked=is_bookmarked,
         page_title=full_name,
         meta_description=meta_desc,
-        canonical=f"https://globalify.xyz/investors/{person.slug}",
+        canonical=f"https://globalify.org/investors/{person.slug}",
         breadcrumbs=[
-            {"name": "Home", "url": "https://globalify.xyz/"},
-            {"name": "Investors", "url": "https://globalify.xyz/investors"},
-            {"name": full_name, "url": f"https://globalify.xyz/investors/{person.slug}"},
+            {"name": "Home", "url": "https://globalify.org/"},
+            {"name": "Investors", "url": "https://globalify.org/investors"},
+            {"name": full_name, "url": f"https://globalify.org/investors/{person.slug}"},
         ],
         affiliation=primary_aff,
     )
@@ -605,11 +605,11 @@ def _render_org_profile(org: Organization):
         is_bookmarked=is_bookmarked,
         page_title=org.name,
         meta_description=meta_desc,
-        canonical=f"https://globalify.xyz/firms/{org.slug}",
+        canonical=f"https://globalify.org/firms/{org.slug}",
         breadcrumbs=[
-            {"name": "Home", "url": "https://globalify.xyz/"},
-            {"name": "Investment Firms", "url": "https://globalify.xyz/firms"},
-            {"name": org.name, "url": f"https://globalify.xyz/firms/{org.slug}"},
+            {"name": "Home", "url": "https://globalify.org/"},
+            {"name": "Investment Firms", "url": "https://globalify.org/firms"},
+            {"name": org.name, "url": f"https://globalify.org/firms/{org.slug}"},
         ],
     )
 

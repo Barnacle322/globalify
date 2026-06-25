@@ -41,6 +41,16 @@ def privacy_policy():
     return render_template("privacy_policy.html")
 
 
+@main.route("/terms-of-service")
+def terms_of_service():
+    return render_template("terms_of_service.html")
+
+
+@main.route("/refund-policy")
+def refund_policy():
+    return render_template("refund_policy.html")
+
+
 @main.route("/investor/<slug>")
 def investor_slug(slug):
     """Legacy route — 301 redirect to the new SSR profile page /investors/<slug>.
@@ -416,7 +426,7 @@ def pricing():
         "pricing.html",
         page_title="Pro — Globalify",
         meta_description="Upgrade to Globalify Pro for full contact info, no ads, advanced filters, saved searches, email alerts, and CSV export.",
-        canonical="https://globalify.xyz/pricing",
+        canonical="https://globalify.org/pricing",
     )
 
 

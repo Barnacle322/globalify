@@ -109,7 +109,7 @@ class TestSendEmailWithKey:
             SECRET_KEY="test",
             FLASK_ENV="testing",
             _RESEND_API_KEY="re_test_key_123",
-            _EMAIL_FROM="Globalify <noreply@mail.globalify.xyz>",
+            _EMAIL_FROM="Globalify <noreply@mail.globalify.org>",
         )
         monkeypatch.setattr(rc, "get_settings", lambda: fake_settings)
 
@@ -138,7 +138,7 @@ class TestSendEmailWithKey:
             SECRET_KEY="test",
             FLASK_ENV="testing",
             _RESEND_API_KEY="re_test_key_123",
-            _EMAIL_FROM="Globalify <noreply@mail.globalify.xyz>",
+            _EMAIL_FROM="Globalify <noreply@mail.globalify.org>",
         )
         monkeypatch.setattr(rc, "get_settings", lambda: fake_settings)
 
@@ -154,7 +154,7 @@ class TestSendEmailWithKey:
 
         send_email("user@test.com", "Hello Subject", "<h1>Body</h1>")
 
-        assert captured["from"] == "Globalify <noreply@mail.globalify.xyz>"
+        assert captured["from"] == "Globalify <noreply@mail.globalify.org>"
         assert captured["to"] == ["user@test.com"]
         assert captured["subject"] == "Hello Subject"
         assert captured["html"] == "<h1>Body</h1>"
@@ -187,7 +187,7 @@ class TestSendMagicLink:
 
         from project.utils.email import send_magic_link
 
-        magic_url = "https://globalify.xyz/auth/verify?token=TESTTOKEN123"
+        magic_url = "https://globalify.org/auth/verify?token=TESTTOKEN123"
         send_magic_link("user@example.com", magic_url)
 
         assert len(captured_html) == 1, "send_email was not called"

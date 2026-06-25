@@ -5,7 +5,7 @@ setup(
     version="0.1",
     description="Type stubs for the Typesense library",
     author="Arstanbek Usenov",
-    author_email="arstan@globalify.xyz",
+    author_email="arstan@globalify.org",
     url="https://github.com/Barnacle322/typesense-stubs",
     packages=find_packages(),
     install_requires=[

@@ -4,7 +4,7 @@
 
 {% block meta_description %}{{ meta_description }}{% endblock %}
 
-{% block canonical %}{{ canonical_full if canonical_full else "https://globalify.xyz" + canonical_path }}{% endblock %}
+{% block canonical %}{{ canonical_full if canonical_full else "https://globalify.org" + canonical_path }}{% endblock %}
 
 {% block head_extra %}{% if robots %}<meta name="robots" content="{{ robots }}">{% endif %}{% endblock %}
 
@@ -78,7 +78,7 @@
 {%- set items = [] %}
 {%- set _entity_base = "/investors" if entity_type == 'person' else "/firms" %}
 {%- for entity in entities %}
-{%- set item_url = "https://globalify.xyz" + _entity_base + "/" + (entity.slug or entity.id | string) %}
+{%- set item_url = "https://globalify.org" + _entity_base + "/" + (entity.slug or entity.id | string) %}
 {%- set item = {"name": entity.name, "url": item_url, "description": entity.headline or entity.about or ""} %}
 {%- set _ = items.append(item) %}
 {%- endfor %}
@@ -88,8 +88,8 @@
 
 {%- if not breadcrumbs %}
 {%- set breadcrumbs = [
-    {"name": "Home", "url": "https://globalify.xyz/"},
-    {"name": heading, "url": "https://globalify.xyz" + canonical_path}
+    {"name": "Home", "url": "https://globalify.org/"},
+    {"name": heading, "url": "https://globalify.org" + canonical_path}
 ] %}
 {%- endif %}
 {% include "partials/_jsonld_breadcrumb.html" %}

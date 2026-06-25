@@ -37,7 +37,7 @@
 
 **Files:** `config.py` (`edgar_user_agent`), `src/project/collectors/edgar.py`, `tests/fixtures/edgar_*.json` (committed real sample), `tests/test_collectors_edgar.py`.
 
-- [ ] **Step 1:** config: `edgar_user_agent: str` (alias `_EDGAR_USER_AGENT`, default `"Globalify Directory contact@globalify.xyz"`) — SEC requires a descriptive UA with contact. (No secret; just identification.)
+- [ ] **Step 1:** config: `edgar_user_agent: str` (alias `_EDGAR_USER_AGENT`, default `"Globalify Directory contact@globalify.org"`) — SEC requires a descriptive UA with contact. (No secret; just identification.)
 - [ ] **Step 2:** `collectors/edgar.py` — `class EdgarCollector(Collector)` (`name="edgar"`):
   - `fetch(limit)`: GET the EDGAR full-text search API for Form D filings — `https://efts.sec.gov/LATEST/search-index?q=%22venture+capital%22&forms=D` (or the documented `https://www.sec.gov/cgi-bin/...`; pick the stable JSON one) with the `User-Agent` header from config + a polite delay; yield up to `limit` hits. Wrap in try/except → on network error log + yield nothing (never crash the CLI).
   - `parse(hit)`: extract the issuer/filer display name + CIK from a hit; build a `NormalizedRecord(entity_type=ORG, source_id=<CIK>, name=<issuer>, source_url=<the EDGAR filing URL>)`. Skip hits with no usable name/CIK (return None). Normalize the name (strip, title-case if SCREAMING).

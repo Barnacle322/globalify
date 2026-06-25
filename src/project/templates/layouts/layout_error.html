@@ -1,12 +1,13 @@
 {% extends "layouts/base.html" %}
 
 {% block content %}
-<div class="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-6 text-center">
-    <div class="text-6xl font-semibold text-slate-900">{% block status_code %}{% endblock %}</div>
-    <div class="text-xl text-slate-600">{% block status_message %}{% endblock %}</div>
+<div class="flex min-h-[60vh] flex-col items-center justify-center gap-2 px-6 text-center">
+    <div class="font-mono text-[11px] uppercase tracking-[0.12em] text-brand">Error</div>
+    <div class="font-display text-[64px] font-semibold leading-none tracking-[-0.02em] text-ink">{% block status_code %}{% endblock %}</div>
+    <div class="mt-1 text-[15px] text-soft">{% block status_message %}{% endblock %}</div>
     <a
         href="/"
-        class="mt-4 rounded-xl bg-slate-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-700"
+        class="mt-5 rounded-[11px] bg-ink px-5 py-3 text-sm font-semibold text-paper transition-colors hover:bg-ink/90"
         >Back to home</a
     >
 </div>

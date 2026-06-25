@@ -7,30 +7,31 @@
 {% endif %}
 {% endblock %}
 {% block content %}
-<main class="flex h-full w-full flex-row items-center text-gray-900">
+<main class="flex h-full w-full flex-row items-center bg-paper text-ink">
     <div class="max w-full justify-center px-9 md:w-1/2 md:justify-start md:px-16">
         <article class="flex max-w-[400px] flex-col gap-2">
-            <div class="mb-4 flex flex-col gap-1 font-medium">
-                <h1 class="text-4xl">Welcome!</h1>
-                <p class="text-sm text-gray-500">Enter your email and we'll send you a login link.</p>
+            <div class="mb-5 flex flex-col gap-2">
+                <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-brand">Sign in / Register</span>
+                <h1 class="font-display text-[40px] font-semibold leading-[1.05] tracking-[-0.02em] text-ink">Welcome back.</h1>
+                <p class="text-[14px] text-soft">Enter your email and we'll send you a secure login link. No password required.</p>
             </div>
 
             {% if status_type %}
                 {% if status_type == '3' %}
-                <div class="rounded-xl text-red-500">{{ msg }}</div>
+                <div class="rounded-[11px] border border-rule bg-panel px-4 py-2.5 text-sm text-red-600">{{ msg }}</div>
                 {% endif %}
                 {% if status_type == '2' %}
-                <div class="rounded-xl text-orange-400">{{ msg }}</div>
+                <div class="rounded-[11px] border border-rule bg-panel px-4 py-2.5 text-sm text-soft">{{ msg }}</div>
                 {% endif %}
                 {% if status_type == '1' %}
-                <div class="rounded-xl text-lime-500">{{ msg }}</div>
+                <div class="rounded-[11px] border border-green/30 bg-green-tint px-4 py-2.5 text-sm text-green">{{ msg }}</div>
                 {% endif %}
             {% endif %}
 
             <form action="{{ url_for('auth.login') }}" method="POST" class="flex flex-col gap-3">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <div class="flex flex-col gap-1">
-                    <label for="email" class="text-sm font-medium text-gray-700">Email address</label>
+                <div class="flex flex-col gap-1.5">
+                    <label for="email" class="text-sm font-medium text-soft">Email address</label>
                     <input
                         type="email"
                         id="email"
@@ -38,7 +39,7 @@
                         placeholder="you@example.com"
                         required
                         autocomplete="email"
-                        class="rounded-xl border border-gray-300 px-4 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                        class="rounded-[11px] border border-rule bg-surface px-4 py-2.5 text-sm text-ink placeholder:text-faint focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
                     />
                 </div>
                 {% if cap_is_configured %}
@@ -49,20 +50,20 @@
                 {% endif %}
                 <button
                     type="submit"
-                    class="inline-flex items-center justify-center rounded-xl bg-slate-900 py-2 text-sm font-semibold text-white hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+                    class="inline-flex items-center justify-center rounded-[11px] bg-ink py-2.5 text-sm font-semibold text-paper transition-colors hover:bg-ink/90 focus:outline-none focus:ring-2 focus:ring-ink focus:ring-offset-2"
                 >
                     Send me a login link
                 </button>
             </form>
 
-            <div class="mt-2 text-xs text-gray-400">
-                <span>By signing in, you agree to </span
-                ><a href="/terms-of-service" class="underline">Terms of Service</a><span> and </span
-                ><a href="/privacy-policy" class="underline">Privacy Policy</a>
+            <div class="mt-2 text-xs text-faint">
+                <span>By signing in, you agree to our </span
+                ><a href="/terms-of-service" class="text-soft underline underline-offset-2 hover:text-brand">Terms of Service</a><span> and </span
+                ><a href="/privacy-policy" class="text-soft underline underline-offset-2 hover:text-brand">Privacy Policy</a>.
             </div>
         </article>
     </div>
-    <div class="hidden h-full w-1/2 overflow-hidden rounded-tl-3xl bg-white md:block">
+    <div class="hidden h-full w-1/2 overflow-hidden rounded-tl-[28px] bg-panel md:block">
         <img class="h-full w-full object-cover" src="/static/elements/login_stock.jpg" alt="" />
     </div>
 </main>

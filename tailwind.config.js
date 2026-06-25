@@ -18,6 +18,31 @@ module.exports = {
                 poppins: ['"Poppins"', "sans-serif"],
                 mono: ['"Space Mono"', "ui-monospace", "monospace"],
             },
+            typography: {
+                // Ledger prose theme — used by legal pages (privacy/terms/refund)
+                DEFAULT: {
+                    css: {
+                        "--tw-prose-body": "#544D3C", // soft
+                        "--tw-prose-headings": "#15120B", // ink
+                        "--tw-prose-links": "#0C72D3", // brand
+                        "--tw-prose-bold": "#15120B", // ink
+                        "--tw-prose-counters": "#8A8470", // faint
+                        "--tw-prose-bullets": "#E6E0D2", // rule
+                        "--tw-prose-hr": "#E6E0D2", // rule
+                        "--tw-prose-quotes": "#15120B",
+                        "--tw-prose-quote-borders": "#E6E0D2",
+                        "--tw-prose-captions": "#8A8470",
+                        "--tw-prose-th-borders": "#E6E0D2",
+                        "--tw-prose-td-borders": "#EDE8DC",
+                        maxWidth: "68ch",
+                        h1: { fontFamily: '"Fraunces", serif', fontWeight: "600", letterSpacing: "-0.02em" },
+                        h2: { fontFamily: '"Fraunces", serif', fontWeight: "600", letterSpacing: "-0.01em" },
+                        h3: { fontFamily: '"Fraunces", serif', fontWeight: "600" },
+                        a: { textDecoration: "none", fontWeight: "500" },
+                        "a:hover": { textDecoration: "underline" },
+                    },
+                },
+            },
             maxWidth: {
                 "8xl": "90rem",
             },

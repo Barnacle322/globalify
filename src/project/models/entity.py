@@ -183,7 +183,7 @@ class Person(MappedAsDataclass, db.Model, unsafe_hash=True):
         import uuid as _uuid
 
         entity = db.session.scalar(db.select(cls).where(cls.source == source, cls.source_id == source_id))
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
 
         if entity is not None:
             if entity.user_id is not None:
@@ -325,7 +325,7 @@ class Organization(MappedAsDataclass, db.Model, unsafe_hash=True):
         import uuid as _uuid
 
         entity = db.session.scalar(db.select(cls).where(cls.source == source, cls.source_id == source_id))
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now(datetime.UTC)
 
         if entity is not None:
             if entity.user_id is not None:

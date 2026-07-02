@@ -113,7 +113,7 @@ class TestUserIsProProperty:
         with db_app.app_context():
             user = _make_user(db, "future@example.com")
             db.session.commit()
-            future = datetime.datetime.utcnow() + datetime.timedelta(days=30)
+            future = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) + datetime.timedelta(days=30)
             user.user_payment.grant_pro("subscription", future)
             assert user.is_pro is True
 
@@ -124,7 +124,7 @@ class TestUserIsProProperty:
         with db_app.app_context():
             user = _make_user(db, "expired@example.com")
             db.session.commit()
-            past = datetime.datetime.utcnow() - datetime.timedelta(days=1)
+            past = datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(days=1)
             user.user_payment.is_pro = True
             user.user_payment.pro_source = "subscription"
             user.user_payment.pro_expires_at = past

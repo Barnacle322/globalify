@@ -218,3 +218,40 @@ class TestSendMagicLink:
         assert len(captured) == 1
         assert captured[0]["to"] == "user@example.com"
         assert "Globalify" in captured[0]["subject"] or "login" in captured[0]["subject"].lower()
+
+
+# ---------------------------------------------------------------------------
+# (d) send_verification_email renders template + link appears in HTML
+# ---------------------------------------------------------------------------
+
+
+class TestSendVerificationEmail:
+    """send_verification_email must render the email template and include the link."""
+
+    def test_link_in_rendered_html(self, app_ctx, monkeypatch):
+        """The verify-email URL must appear in the HTML passed to send_email."""
+        import project.utils.email as email_pkg
+        import project.utils.email.resend_client as rc
+        from project.config import Settings
+
+        monkeypatch.setattr(rc, "get_settings", lambda: Settings(SECRET_KEY="test", FLASK_ENV="testing"))
+
+        captured = []
+
+        def fake_send_email(to, subject, html):
+            captured.append({"to": to, "subject": subject, "html": html})
+            return True
+
+        monkeypatch.setattr(email_pkg, "send_email", fake_send_email)
+
+        from project.utils.email import send_verification_email
+
+        verify_url = "https://globalify.org/verify-email?uuid=TESTTOKEN456"
+        send_verification_email("user@example.com", verify_url)
+
+        assert len(captured) == 1, "send_email was not called"
+        assert verify_url in captured[0]["html"], (
+            f"Verify URL not found in rendered HTML. Got: {captured[0]['html'][:300]}"
+        )
+        assert captured[0]["to"] == "user@example.com"
+        assert "verif" in captured[0]["subject"].lower()

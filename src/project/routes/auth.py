@@ -35,7 +35,7 @@ from ..models import (
 )
 from ..utils.cap import verify_captcha
 from ..utils.decorators import check_user_info_complete
-from ..utils.email import send_magic_link
+from ..utils.email import send_magic_link, send_verification_email
 from ..utils.enums import Status, StatusType
 from ..utils.errors.error_messages import ACCOUNT_NOT_FOUND
 
@@ -247,7 +247,9 @@ def resend_verification_email(user_id):
     db.session.add(verification)
     db.session.commit()
 
-    # TODO Phase 3: send verification email via magic-link service
+    link = url_for("auth.verify_email", uuid=verification.token, _external=True)
+    send_verification_email(user.email, link)
+
     status = Status(StatusType.SUCCESS, "Verification code sent! Please check your email.").get_status()
     return redirect(url_for("auth.email_verification_required", _external=False, **status))
 

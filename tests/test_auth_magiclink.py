@@ -360,6 +360,57 @@ class TestFindOrCreateCreatesUserPayment:
 # ---------------------------------------------------------------------------
 
 
+class TestResendVerificationSendsEmail:
+    """GET /resend-verification/<id> must actually dispatch the verification email
+    (legacy flow for pre-migration unverified accounts)."""
+
+    def test_resend_dispatches_email_to_user(self, db_app, client, caplog):
+        """The route must hand the email to the (stubbed) sender, not just flash success."""
+        import logging
+
+        from project.extensions import db
+
+        with db_app.app_context():
+            user = _make_user(db, "legacy_unverified@example.com", is_verified=False)
+            db.session.commit()
+            user_id = user.id
+
+        with client.session_transaction() as sess:
+            sess["_user_id"] = str(user_id)
+            sess["_fresh"] = True
+
+        with caplog.at_level(logging.INFO, logger="project"):
+            resp = client.get(f"/resend-verification/{user_id}", follow_redirects=False)
+
+        assert resp.status_code in (302, 303)
+        assert any("legacy_unverified@example.com" in r.message for r in caplog.records), (
+            "No email was dispatched to the user — the stub sender never logged the address"
+        )
+
+    def test_resend_creates_verification_row(self, db_app, client, caplog):
+        """The route must still create an EmailVerification row (existing behavior)."""
+        import logging
+
+        from project.extensions import db
+        from project.models import EmailVerification
+
+        with db_app.app_context():
+            user = _make_user(db, "legacy_row@example.com", is_verified=False)
+            db.session.commit()
+            user_id = user.id
+
+        with client.session_transaction() as sess:
+            sess["_user_id"] = str(user_id)
+            sess["_fresh"] = True
+
+        with caplog.at_level(logging.INFO, logger="project"):
+            client.get(f"/resend-verification/{user_id}", follow_redirects=False)
+
+        with db_app.app_context():
+            verification = EmailVerification.get_last_unused_by_user_id(user_id)
+            assert verification is not None
+
+
 class TestSettingsNoFiveHundredWithoutUserPayment:
     """GET /settings/general must not 500 when the user has no UserPayment row
     (mimics a user created via the old find-or-create path before the fix)."""

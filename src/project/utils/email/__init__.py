@@ -20,3 +20,14 @@ def send_magic_link(email: str, link: str) -> None:
     """
     html = render_template("email/magic_link.html", link=link)
     send_email(email, "Your Globalify login link", html)
+
+
+def send_verification_email(email: str, link: str) -> None:
+    """Send an email-verification link to *email*.
+
+    Renders ``email/verify_email.html`` with the verify *link*, then hands off
+    to the Resend-gated ``send_email`` helper.  Falls back to a log stub when
+    no API key is configured.
+    """
+    html = render_template("email/verify_email.html", link=link)
+    send_email(email, "Verify your Globalify email", html)
